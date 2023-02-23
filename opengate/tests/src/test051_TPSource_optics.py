@@ -56,8 +56,8 @@ nozzle.material = "G4_WATER"
 
 # target
 phantom = sim.add_volume("Box", "phantom")
-phantom.size = [600 * mm, 310 * mm, 310 * mm]
-phantom.translation = [300 * mm, 0.0, 0.0]
+phantom.size = [300 * mm, 310 * mm, 310 * mm]
+phantom.translation = [150 * mm, 0.0, 0.0]
 # phantom.rotation = Rotation.from_euler('x',-90,degrees=True).as_matrix()
 phantom.material = "G4_AIR"
 phantom.color = [0, 0, 1, 1]
@@ -78,46 +78,45 @@ sim.set_user_limits(
 dose = sim.add_actor("DoseActor", "doseInXYZ")
 dose.output = output_path / "testTPSoptics.mhd"
 dose.mother = phantom.name
-dose.size = [300, 620, 620]
-dose.spacing = [2.0, 0.5, 0.5]
+dose.size = [30, 620, 620]
+dose.spacing = [10.0, 0.5, 0.5]
 dose.hit_type = "random"
 dose.gray = True
 
 ## ---------- DEFINE BEAMLINE MODEL -------------##
 IR2HBL = gate.BeamlineModel()
-IR2HBL.Name = None
-IR2HBL.RadiationTypes = "ion 6 12"
+IR2HBL.name = None
+IR2HBL.radiation_types = "ion 6 12"
 # Nozzle entrance to Isocenter distance
-IR2HBL.NozzleToIsoDist = 1300.00  # 1648 * mm#1300 * mm
+IR2HBL.distance_nozzle_iso = 1300.00  # 1648 * mm#1300 * mm
 # SMX to Isocenter distance
-IR2HBL.SMXToIso = 6700.00
+IR2HBL.distance_stearmag_to_isocenter_x = 6700.00
 # SMY to Isocenter distance
-IR2HBL.SMYToIso = 7420.00
+IR2HBL.distance_stearmag_to_isocenter_y = 7420.00
 # polinomial coefficients
-IR2HBL.energyMeanCoeffs = [11.91893485094217, -9.539517997860457]
-IR2HBL.sigmaXCoeffs = [-0.00011142901344618727, 2.346946879501544]
-IR2HBL.thetaXCoeffs = [-3.6368814874049214e-07, 0.0003381328996152591]
-IR2HBL.epsilonXCoeffs = [3.1292233857396716e-06, 0.0004117718840152502]
-IR2HBL.sigmaYCoeffs = [-0.0004009682717802152, 2.0124504979960225]
-IR2HBL.thetaYCoeffs = [-8.437400716390318e-07, 0.000892426821944524]
-IR2HBL.epsilonYCoeffs = [-8.757558864087579e-08, 0.00250212397239695]
+IR2HBL.energy_mean_coeffs = [11.91893485094217, -9.539517997860457]
+IR2HBL.energy_spread_coeffs = [0.0004790681841295621, 5.253257865904452]
+IR2HBL.sigma_x_coeffs = [-0.00011142901344618727, 2.346946879501544]
+IR2HBL.theta_x_coeffs = [-3.6368814874049214e-07, 0.0003381328996152591]
+IR2HBL.epsilon_x_coeffs = [3.1292233857396716e-06, 0.0004117718840152502]
+IR2HBL.sigma_y_coeffs = [-0.0004009682717802152, 2.0124504979960225]
+IR2HBL.theta_y_coeffs = [-8.437400716390318e-07, 0.000892426821944524]
+IR2HBL.epsilon_y_coeffs = [-8.757558864087579e-08, 0.00250212397239695]
 
 ## --------START PENCIL BEAM SCANNING---------- ##
 # NOTE: HBL means that the beam is coming from -x (90 degree rot around y)
 # nSim = 328935  # particles to simulate per beam
 nSim = 20000
-tps = gate.TreatmentPlanSource(nSim, sim, IR2HBL)
-# rt_plan = ref_path / "RP1.2.752.243.1.1.20230119115736709.2000.75541.dcm"
-# beamset = gate.beamset_info(rt_plan)
-# tps.set_beamset_from_dcm(rt_plan)
-# tps.beamset = beamset
-# G = float(beamset.beam_angles[0])
 spots, ntot, energies, G = gate.spots_info_from_txt(
     ref_path / "TreatmentPlan4Gate-gate_test51_TP_1_old.txt", "ion 6 12"
 )
-tps.spots = spots
-tps.name = "RT_plan"
+tps = gate.TreatmentPlanSource("RT_plan", sim)
+tps.set_beamline_model(IR2HBL)
+tps.set_particles_to_simulate(nSim)
+tps.set_spots(spots)
 tps.rotation = Rotation.from_euler("z", G, degrees=True)
+# rt_plan = ref_path / "RP1.2.752.243.1.1.20230119115736709.2000.75541.dcm"
+# tps.set_spots_from_rtplan(rt_plan) # no need to set rotation here
 tps.initialize_tpsource()
 
 # add stat actor

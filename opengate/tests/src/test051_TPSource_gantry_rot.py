@@ -36,22 +36,23 @@ world.size = [600 * cm, 500 * cm, 500 * cm]
 
 ## ---------- DEFINE BEAMLINE MODEL -------------##
 beamline = gate.BeamlineModel()
-beamline.Name = None
-beamline.RadiationTypes = "ion 6 12"
+beamline.name = None
+beamline.radiation_types = "ion 6 12"
 # Nozzle entrance to Isocenter distance
-beamline.NozzleToIsoDist = 1300.00  # 1648 * mm#1300 * mm
+beamline.distance_nozzle_iso = 1300.00  # 1648 * mm#1300 * mm
 # SMX to Isocenter distance
-beamline.SMXToIso = 6700.00
+beamline.distance_stearmag_to_isocenter_x = 6700.00
 # SMY to Isocenter distance
-beamline.SMYToIso = 7420.00
+beamline.distance_stearmag_to_isocenter_y = 7420.00
 # polinomial coefficients
-beamline.energyMeanCoeffs = [11.91893485094217, -9.539517997860457]
-beamline.sigmaXCoeffs = [2.3335753978880014]
-beamline.thetaXCoeffs = [0.0002944903217664001]
-beamline.epsilonXCoeffs = [0.0007872786903040108]
-beamline.sigmaYCoeffs = [1.9643343053823967]
-beamline.thetaYCoeffs = [0.0007911780133478402]
-beamline.epsilonYCoeffs = [0.0024916149017600447]
+beamline.energy_mean_coeffs = [11.91893485094217, -9.539517997860457]
+beamline.energy_spread_coeffs = [0.0004790681841295621, 5.253257865904452]
+beamline.sigma_x_coeffs = [2.3335753978880014]
+beamline.theta_x_coeffs = [0.0002944903217664001]
+beamline.epsilon_x_coeffs = [0.0007872786903040108]
+beamline.sigma_y_coeffs = [1.9643343053823967]
+beamline.theta_y_coeffs = [0.0007911780133478402]
+beamline.epsilon_y_coeffs = [0.0024916149017600447]
 
 # NOTE: HBL means that the beam is coming from -x (90 degree rot around y)
 nSim = 20000  # particles to simulate per beam
@@ -116,8 +117,8 @@ phantom_rot.translation = [0.0, 0.0, 1000.0]
 dose = sim.add_actor("DoseActor", "doseInXYZ")
 dose.output = output_path / "testTPSgantry.mhd"
 dose.mother = phantom.name
-dose.size = [162, 648, 162]
-dose.spacing = [2.0, 0.5, 2.0]
+dose.size = [162, 1620, 162]
+dose.spacing = [2.0, 0.2, 2.0]
 dose.hit_type = "random"
 dose.gray = True
 
@@ -135,16 +136,17 @@ sim.set_cut("world", "all", 1000 * km)
 spots, ntot, energies, G = gate.spots_info_from_txt(
     ref_path / "TreatmentPlan4Gate-1D_HBL_120.txt", "ion 6 12"
 )
-tps = gate.TreatmentPlanSource(nSim, sim, beamline)
-# tps.beamset = beamset
+tps = gate.TreatmentPlanSource("VBL", sim)
+tps.set_beamline_model(beamline)
+tps.set_particles_to_simulate(nSim)
 tps.set_spots(spots)
-tps.name = "VBL"
 tps.rotation = Rotation.from_euler("z", 0, degrees=True)
 tps.initialize_tpsource()
 
-tps_rot = gate.TreatmentPlanSource(nSim, sim, beamline)
+tps_rot = gate.TreatmentPlanSource("HBL", sim)
+tps_rot.set_beamline_model(beamline)
+tps_rot.set_particles_to_simulate(nSim)
 tps_rot.set_spots(spots)
-tps_rot.name = "HBL"
 tps_rot.rotation = Rotation.from_euler("z", G, degrees=True)
 tps_rot.translation = [0.0, 0.0, 1000.0]
 tps_rot.initialize_tpsource()
