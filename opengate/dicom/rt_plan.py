@@ -533,6 +533,10 @@ class beamset_info(object):
         return self._dose_roinumber
 
     @property
+    def structure_set_uid(self):
+        return self._rp.ReferencedStructureSetSequence[0].ReferencedSOPInstanceUID
+
+    @property
     def prescription_dose(self):
         if hasattr(self._rp, "DoseReferenceSequence"):
             if hasattr(self._rp.DoseReferenceSequence[0], "TargetPrescriptionDose"):

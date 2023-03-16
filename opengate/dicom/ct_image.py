@@ -87,10 +87,14 @@ class ct_image_from_dicom(ct_image_base):
         )
         self._slices = [pydicom.read_file(f) for f in flist]
         print("got {} CT slices".format(len(self._slices)))
+
+        # sort slices according to their position along the axis
         self._slices.sort(key=lambda x: float(x.ImagePositionPatient[2]))
         slice_thicknesses = np.round(
             np.diff([s.ImagePositionPatient[2] for s in self._slices]), decimals=2
         )
+
+        # get spacing -> [sx, sy, sz] average size of all ct slices
         pixel_widths = np.round([s.PixelSpacing[1] for s in self._slices], decimals=2)
         pixel_heights = np.round([s.PixelSpacing[0] for s in self._slices], decimals=2)
         spacing = []
@@ -113,12 +117,17 @@ class ct_image_from_dicom(ct_image_base):
                 )
             spacing.append(np.mean(spacings))
         print("spacing is ({},{},{})".format(*spacing))
+
+        # get origin
         origin = self._slices[0].ImagePositionPatient[:]
         print("origin is ({},{},{})".format(*origin))
+
         # TODO: is it possible that some self._slices have a different intercept and slope?
         intercept = np.int16(self._slices[0].RescaleIntercept)
         slope = np.float64(self._slices[0].RescaleSlope)
         print("HU rescale: slope={}, intercept={}".format(slope, intercept))
+
+        # stack 2D slices together to get 3D pixel array
         if slope != 1:
             self._img_array = np.stack([s.pixel_array for s in self._slices]).astype(
                 np.int16
@@ -137,6 +146,8 @@ class ct_image_from_dicom(ct_image_base):
                 np.max(self._img_array),
             )
         )
+
+        # set image properties
         self._img = itk.GetImageFromArray(self._img_array)
         self._img.SetSpacing(tuple(spacing))
         self._img.SetOrigin(tuple(origin))
@@ -191,15 +202,3 @@ def get_series_filenames(ddir, uid=None):
             # flist = sitk.ImageSeriesReader_GetGDCMSeriesFileNames(ddir,uid)
             flist = dcmseries_reader.GetFileNames(uid)
             return uid, flist
-
-
-def get_ct_uid_from_rtstruct(rts_path):
-    rs = pydicom.read_file(rts_path)
-    ctuid = (
-        rs.ReferencedFrameOfReferenceSequence[0]
-        .RTReferencedStudySequence[0]
-        .RTReferencedSeriesSequence[0]
-        .SeriesInstanceUID
-    )
-
-    return ctuid
