@@ -88,6 +88,9 @@ class ct_image_from_dicom(ct_image_base):
         self._slices = [pydicom.read_file(f) for f in flist]
         print("got {} CT slices".format(len(self._slices)))
 
+        # check slices integrity
+        self._check_dcm_slices()
+
         # sort slices according to their position along the axis
         self._slices.sort(key=lambda x: float(x.ImagePositionPatient[2]))
         slice_thicknesses = np.round(
@@ -152,6 +155,28 @@ class ct_image_from_dicom(ct_image_base):
         self._img.SetSpacing(tuple(spacing))
         self._img.SetOrigin(tuple(origin))
         self._uid = uid
+
+    def _check_dcm_slices(self):
+        for dcm in self._slices:
+            genericTags = [
+                "InstanceCreationDate",
+                "SeriesInstanceUID",
+                "ImagePositionPatient",
+                "RescaleIntercept",
+                "RescaleSlope",
+                "InstanceCreationTime",
+                "ImagePositionPatient",
+                "PixelSpacing",
+            ]
+            missing_keys = []
+            for key in genericTags:
+                if key not in dcm:
+                    missing_keys.append(key)
+            if missing_keys:
+                raise ImportError(
+                    "DICOM CT file not conform. Missing keys: ", missing_keys
+                )
+        print("\033[92mCT files ok \033[0m")
 
 
 def get_series_filenames(ddir, uid=None):

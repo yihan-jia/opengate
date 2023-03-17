@@ -95,27 +95,12 @@ class dose_info(object):
             fpath = os.path.join(dirpath, s)
             dcm = pydicom.read_file(fpath)
             if "SOPClassUID" not in dcm:
-                print(
-                    "NOT A DOSE FILE (SOPClassUID attribute is missing): {}".format(s)
-                )
                 continue  # not a RD dose file
             if dcm.SOPClassUID.name != "RT Dose Storage":
-                print("NOT A DOSE FILE (wrong SOPClassUID): {}".format(s))
                 continue  # not a RD dose file
-            missing_attrs = [
-                a
-                for a in [
-                    "ReferencedRTPlanSequence",
-                    "DoseGridScaling",
-                    "DoseUnits",
-                    "DoseSummationType",
-                ]
-                if not hasattr(dcm, a)
-            ]
-            if missing_attrs:
-                print("BAD DOSE FILE: {}".format(s))
-                print("Missing attributes: {}".format(", ".join(missing_attrs)))
-                continue  # not a RD dose file
+            # check file integrity
+            check_file(dcm)
+
             drefrtp0 = dcm.ReferencedRTPlanSequence[0]
             if rpuid:
                 uid = str(drefrtp0.ReferencedSOPInstanceUID)
@@ -124,12 +109,10 @@ class dose_info(object):
                     continue  # dose file for a different plan
             dose_type = str(dcm.DoseType).upper()
             dose_sum_type = str(dcm.DoseSummationType)
-            physical = True
-            beamnr = None
+
             if dose_sum_type.upper() == "PLAN":
                 # the physical or effective plan dose file (hopefully)
                 label = "PLAN"
-                beamdose = False
             else:
                 # a beam dose file (hopefully)
                 label = str(
@@ -137,12 +120,10 @@ class dose_info(object):
                     .ReferencedBeamSequence[0]
                     .ReferencedBeamNumber
                 )
-                beamnr = label
                 print("BEAM DOSE FILE FOR {}".format(label))
             if dose_type == "EFFECTIVE":
                 print("got EFFECTIVE=RBE dose for {}".format(label))
                 label += "_RBE"
-                physical = False
             elif dose_type == "PHYSICAL":
                 print("got PHYSICAL dose for {}".format(label))
             else:
@@ -162,6 +143,66 @@ class dose_info(object):
                 doses[label] = dose_info(dcm, fpath)
         # if we arrive here, things are probably fine...
         return doses
+
+
+def loop_over_tags_level(tags, data, missing_keys):
+    for key in tags:
+        if key not in data:
+            missing_keys.append(key)
+
+
+def check_file(dcm):
+    genericTags = [
+        "NumberOfFrames",
+        "ReferencedRTPlanSequence",
+        "Rows",
+        "Columns",
+        "DoseGridScaling",
+        "PixelSpacing",
+        "SliceThickness",
+        "ImagePositionPatient",
+        "DoseType",
+        "SOPClassUID",
+        "DoseSummationType",
+        "DoseUnits",
+    ]
+
+    planSeqTag = [
+        "ReferencedSOPInstanceUID"
+    ]  # "ReferencedFractionGroupSequence" only if "DoseSummationType" == PLAN
+    refBeamTag = "ReferencedBeamNumber"
+    missing_keys = []
+
+    # check first layer of the hierarchy
+    loop_over_tags_level(genericTags, dcm, missing_keys)
+
+    # check referenced RT Plan seq
+    if "ReferencedRTPlanSequence" in dcm:
+        # check ROI contour sequence
+        loop_over_tags_level(planSeqTag, dcm.ReferencedRTPlanSequence[0], missing_keys)
+
+        if "DoseSummationType" in dcm:
+            if dcm.DoseSummationType != "PLAN":
+                # check also ReferencedFractionGroupSequence
+                if (
+                    "ReferencedFractionGroupSequence"
+                    not in dcm.ReferencedRTPlanSequence[0]
+                ):
+                    missing_keys.append("ReferencedFractionGroupSequence")
+                elif (
+                    refBeamTag
+                    not in dcm.ReferencedRTPlanSequence[0]
+                    .ReferencedFractionGroupSequence[0]
+                    .ReferencedBeamSequence[0]
+                ):
+                    missing_keys.append(
+                        "ReferencedBeamNumber under ReferencedRTPlanSequence/ReferencedFractionGroupSequence/ReferencedBeamSequence"
+                    )
+
+    if missing_keys:
+        raise ImportError("DICOM RD file not conform. Missing keys: ", missing_keys)
+    else:
+        print("\033[92mRD file ok \033[0m")
 
 
 # vim: set et softtabstop=4 sw=4 smartindent:
