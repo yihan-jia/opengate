@@ -209,7 +209,7 @@ def plot_img_y(ax, img, label):
     data = itk.GetArrayViewFromImage(img)
     y = np.sum(data, 2)
     y = np.sum(y, 0)
-    x = np.arange(len(y)) * img.GetSpacing()[2]
+    x = np.arange(len(y)) * img.GetSpacing()[1]
     ax.plot(x, y, label=label)
     ax.legend()
 
@@ -219,7 +219,7 @@ def plot_img_x(ax, img, label):
     data = itk.GetArrayViewFromImage(img)
     y = np.sum(data, 1)
     y = np.sum(y, 0)
-    x = np.arange(len(y)) * img.GetSpacing()[2]
+    x = np.arange(len(y)) * img.GetSpacing()[0]
     ax.plot(x, y, label=label)
     ax.legend()
 
@@ -1311,6 +1311,13 @@ def getRange(xV, dV, percentLevel=0.8):
     return (r80, dAtR80)
 
 
+def get_range_from_image(volume, shape, spacing, axis="y"):
+    x1, d1 = get_1D_profile(volume, shape, spacing, axis=axis)
+    r, _ = getRange(x1, d1)
+
+    return r
+
+
 def compareRange(
     volume1,
     volume2,
@@ -1325,9 +1332,7 @@ def compareRange(
     ok = True
     x1, d1 = get_1D_profile(volume1, shape1, spacing1, axis=axis1)
     x2, d2 = get_1D_profile(volume2, shape2, spacing2, axis=axis2)
-    # plt.plot(x1, d1)
-    # plt.plot(x2, d2)
-    # plt.show()
+
     print("---RANGE80---")
     r1, _ = getRange(x1, d1)
     r2, _ = getRange(x2, d2)
@@ -1359,13 +1364,24 @@ def get_1D_profile(data, shape, spacing, axis="z"):
 
 
 def compare_dose_at_points(
-    pointsV, dose1, dose2, shape, spacing, axis="z", rel_tol=0.03
+    pointsV,
+    dose1,
+    dose2,
+    shape1,
+    shape2,
+    spacing1,
+    spacing2,
+    axis1="z",
+    axis2="z",
+    rel_tol=0.03,
 ):
     ok = True
     s1 = 0
     s2 = 0
-    x1, doseV1 = get_1D_profile(dose1, shape, spacing, axis=axis)
-    x2, doseV2 = get_1D_profile(dose2, shape, spacing, axis=axis)
+
+    x1, doseV1 = get_1D_profile(dose1, shape1, spacing1, axis=axis1)
+    x2, doseV2 = get_1D_profile(dose2, shape2, spacing2, axis=axis2)
+
     # plt.plot(x1, doseV1)
     # plt.plot(x2, doseV2)
     # plt.show()
@@ -1381,6 +1397,7 @@ def compare_dose_at_points(
         s2 += d2_p
 
     print(abs(s1 - s2) / s2)
+
     # print(f"Dose difference at {p} mm is {diff_pc}%")
     if abs(s1 - s2) / s2 > rel_tol:
         print(f"\033[91mDose difference above threshold \033[0m")
