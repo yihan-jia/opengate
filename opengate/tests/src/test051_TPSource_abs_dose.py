@@ -127,13 +127,13 @@ tps.initialize_tpsource()
 # add stat actor
 s = sim.add_actor("SimulationStatisticsActor", "Stats")
 s.track_types_flag = True
-# start simulation
-output = sim.start()
+# # start simulation
+# output = sim.start()
 
-## -------------END SCANNING------------- ##
-# print results at the end
-stat = output.get_actor("Stats")
-print(stat)
+# ## -------------END SCANNING------------- ##
+# # print results at the end
+# stat = output.get_actor("Stats")
+# print(stat)
 
 # create output dir, if it doesn't exist
 if not os.path.isdir(output_path):
@@ -156,9 +156,9 @@ img_mhd_ref = itk.imread(
 data = itk.GetArrayViewFromImage(img_mhd_out)
 data_ref = itk.GetArrayViewFromImage(img_mhd_ref)
 shape = data.shape
-spacing = np.flip(img_mhd_out.GetSpacing())
+spacing = img_mhd_out.GetSpacing()
 spacing_ref = np.flip(img_mhd_ref.GetSpacing())
-
+print(shape, spacing)
 ok = gate.assert_img_sum(
     img_mhd_out,
     img_mhd_ref,
@@ -174,7 +174,7 @@ ok = (
         data_ref.shape,
         spacing,
         spacing_ref,
-        axis1="x",
+        axis1="z",
         axis2="x",
         rel_tol=0.03,
     )

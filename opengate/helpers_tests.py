@@ -1248,7 +1248,7 @@ def scale_dose(path, scaling, outpath):
     data = itk.GetArrayViewFromImage(img_mhd_in)
     dose = data * scaling
     spacing = img_mhd_in.GetSpacing()
-    img = itk.image_from_array(dose)
+    img = gate.itk_image_view_from_array(dose)
     img.SetSpacing(spacing)
     itk.imwrite(img, outpath)
     return outpath
@@ -1382,9 +1382,9 @@ def compare_dose_at_points(
     x1, doseV1 = get_1D_profile(dose1, shape1, spacing1, axis=axis1)
     x2, doseV2 = get_1D_profile(dose2, shape2, spacing2, axis=axis2)
 
-    # plt.plot(x1, doseV1)
-    # plt.plot(x2, doseV2)
-    # plt.show()
+    plt.plot(x1, doseV1)
+    plt.plot(x2, doseV2)
+    plt.show()
     for p in pointsV:
         # get dose at the position p [mm]
         cp1 = min(x1, key=lambda x: abs(x - p))
