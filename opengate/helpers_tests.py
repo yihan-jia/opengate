@@ -1417,10 +1417,7 @@ def assert_img_sum(img1, img2, sum_tolerance=5):
     print_test(b, f"Img sums {s1} vs {s2} : {t:.2f} %  (tol {sum_tolerance:.2f} %)")
     return b
 
-<<<<<<< HEAD
-=======
 
->>>>>>> 4744e3aea36eb346572db4b2a710f1056035beb5
 def check_diff(value1, value2, tolerance, txt):
     diff = np.fabs(value1 - value2) / value1 * 100
     t = diff < tolerance
@@ -1435,7 +1432,4 @@ def check_diff_abs(value1, value2, tolerance, txt):
     s = f"{txt} {value1:.2f} vs {value2:.2f} -> {diff:.2f} (tol={tolerance})"
     gate.print_test(t, s)
     return t
-<<<<<<< HEAD
 
-=======
->>>>>>> 4744e3aea36eb346572db4b2a710f1056035beb5
