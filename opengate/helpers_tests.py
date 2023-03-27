@@ -209,7 +209,7 @@ def plot_img_y(ax, img, label):
     data = itk.GetArrayViewFromImage(img)
     y = np.sum(data, 2)
     y = np.sum(y, 0)
-    x = np.arange(len(y)) * img.GetSpacing()[2]
+    x = np.arange(len(y)) * img.GetSpacing()[1]
     ax.plot(x, y, label=label)
     ax.legend()
 
@@ -219,7 +219,7 @@ def plot_img_x(ax, img, label):
     data = itk.GetArrayViewFromImage(img)
     y = np.sum(data, 1)
     y = np.sum(y, 0)
-    x = np.arange(len(y)) * img.GetSpacing()[2]
+    x = np.arange(len(y)) * img.GetSpacing()[0]
     ax.plot(x, y, label=label)
     ax.legend()
 
@@ -1249,10 +1249,29 @@ def scale_dose(path, scaling, outpath):
     dose = data * scaling
     spacing = img_mhd_in.GetSpacing()
     img = gate.itk_image_view_from_array(dose)
-    #img = itk.image_from_array(dose)
     img.SetSpacing(spacing)
     itk.imwrite(img, outpath)
     return outpath
+
+
+def check_dose_grid_geometry(dose_mhd_path, dose_actor):
+    img = itk.imread(dose_mhd_path)
+    data = itk.GetArrayViewFromImage(img)
+    shape = data.shape
+    spacing = img.GetSpacing()
+    shape_ref = tuple(np.flip(dose_actor.size))
+    spacing_ref = dose_actor.spacing
+
+    ok = True
+    if shape != shape_ref:
+        print(f"{shape=} not the same as {shape_ref=}!")
+        ok = False
+
+    if spacing != spacing_ref:
+        print(f"{spacing=} not the same as {spacing_ref=}!")
+        ok = False
+
+    return ok
 
 
 def arangeDx(dx, xV, includeUB=False, lb=[], ub=[]):
@@ -1292,6 +1311,13 @@ def getRange(xV, dV, percentLevel=0.8):
     return (r80, dAtR80)
 
 
+def get_range_from_image(volume, shape, spacing, axis="y"):
+    x1, d1 = get_1D_profile(volume, shape, spacing, axis=axis)
+    r, _ = getRange(x1, d1)
+
+    return r
+
+
 def compareRange(
     volume1,
     volume2,
@@ -1306,9 +1332,7 @@ def compareRange(
     ok = True
     x1, d1 = get_1D_profile(volume1, shape1, spacing1, axis=axis1)
     x2, d2 = get_1D_profile(volume2, shape2, spacing2, axis=axis2)
-    # plt.plot(x1,d1)
-    # plt.plot(x2,d2)
-    # plt.show()
+
     print("---RANGE80---")
     r1, _ = getRange(x1, d1)
     r2, _ = getRange(x2, d2)
@@ -1324,30 +1348,41 @@ def compareRange(
 
 
 def get_1D_profile(data, shape, spacing, axis="z"):
-
     if axis == "x":
-        d1 = np.sum(np.sum(data, 0), 1)
-        x1 = create_position_vector(shape[2], spacing[0])
+        d1 = np.sum(np.sum(data, 1), 0)
+        x1 = create_position_vector(shape[2], spacing[0], centered=False)
 
     if axis == "y":
         d1 = np.sum(np.sum(data, 2), 0)
-        x1 = create_position_vector(shape[1], spacing[1])
+        x1 = create_position_vector(shape[1], spacing[1], centered=False)
 
-    else:
+    if axis == "z":
         d1 = np.sum(np.sum(data, 2), 1)
-        x1 = create_position_vector(shape[0], spacing[2])
+        x1 = create_position_vector(shape[0], spacing[2], centered=False)
 
     return x1, d1
 
 
 def compare_dose_at_points(
-    pointsV, dose1, dose2, shape, spacing, axis="z", rel_tol=0.03
+    pointsV,
+    dose1,
+    dose2,
+    shape1,
+    shape2,
+    spacing1,
+    spacing2,
+    axis1="z",
+    axis2="z",
+    rel_tol=0.03,
 ):
     ok = True
     s1 = 0
     s2 = 0
-    x1, doseV1 = get_1D_profile(dose1, shape, spacing, axis=axis)
-    x2, doseV2 = get_1D_profile(dose2, shape, spacing, axis=axis)
+    x1, doseV1 = get_1D_profile(dose1, shape1, spacing1, axis=axis1)
+    x2, doseV2 = get_1D_profile(dose2, shape2, spacing2, axis=axis2)
+    # plt.plot(x1, doseV1)
+    # plt.plot(x2, doseV2)
+    # plt.show()
     for p in pointsV:
         # get dose at the position p [mm]
         cp1 = min(x1, key=lambda x: abs(x - p))
@@ -1358,6 +1393,8 @@ def compare_dose_at_points(
 
         s1 += d1_p
         s2 += d2_p
+
+    print(abs(s1 - s2) / s2)
 
     # print(f"Dose difference at {p} mm is {diff_pc}%")
     if abs(s1 - s2) / s2 > rel_tol:
@@ -1380,6 +1417,10 @@ def assert_img_sum(img1, img2, sum_tolerance=5):
     print_test(b, f"Img sums {s1} vs {s2} : {t:.2f} %  (tol {sum_tolerance:.2f} %)")
     return b
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 4744e3aea36eb346572db4b2a710f1056035beb5
 def check_diff(value1, value2, tolerance, txt):
     diff = np.fabs(value1 - value2) / value1 * 100
     t = diff < tolerance
@@ -1394,4 +1435,7 @@ def check_diff_abs(value1, value2, tolerance, txt):
     s = f"{txt} {value1:.2f} vs {value2:.2f} -> {diff:.2f} (tol={tolerance})"
     gate.print_test(t, s)
     return t
+<<<<<<< HEAD
 
+=======
+>>>>>>> 4744e3aea36eb346572db4b2a710f1056035beb5
