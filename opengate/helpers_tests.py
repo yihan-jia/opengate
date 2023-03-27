@@ -1245,7 +1245,8 @@ def scale_dose(path, scaling, outpath):
     data = itk.GetArrayViewFromImage(img_mhd_in)
     dose = data * scaling
     spacing = img_mhd_in.GetSpacing()
-    img = itk.image_from_array(dose)
+    img = gate.itk_image_view_from_array(dose)
+    #img = itk.image_from_array(dose)
     img.SetSpacing(spacing)
     itk.imwrite(img, outpath)
     return outpath
