@@ -958,10 +958,13 @@ def plot_gauss_fit(positionVec, dose, fit, show=False):
     return fig
 
 
-def create_position_vector(length, spacing):
+def create_position_vector(length, spacing, centered=True):
     # cretae position vector, with origin in the image plane's center
     width = length * spacing
-    positionVec = np.arange(0, width, spacing) - width / 2 + spacing / 2
+    if centered:
+        positionVec = np.arange(0, width, spacing) - width / 2 + spacing / 2
+    else:
+        positionVec = np.arange(0, width, spacing)
 
     return positionVec
 
