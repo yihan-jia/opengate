@@ -76,7 +76,8 @@ nozzle.size = [500 * mm, 500 * mm, 2 * mm]
 nozzle.material = "G4_WATER"
 
 # treatment info
-rt_plan_path = "/home/ideal/0_Data/02_ref_RTPlans/01_ref_Plans_CT_RTpl_RTs_RTd/03_AbsDose/01_IR2HBLc/E120_0MeVn/RP1.2.752.243.1.1.20230202162643145.2610.40668_tagman.dcm"
+# rt_plan_path = "/home/ideal/0_Data/02_ref_RTPlans/01_ref_Plans_CT_RTpl_RTs_RTd/03_AbsDose/01_IR2HBLc/E120_0MeVn/RP1.2.752.243.1.1.20230202162643145.2610.40668_tagman.dcm"
+rt_plan_path = "/home/ideal/0_Data/99_NonRefPlans/Box16_15_C_ISD0_Phys/DCM/RP1.2.752.243.1.1.20190416091012952.3300.34040.dcm"
 treatment = gate.radiation_treatment(rt_plan_path)
 # structs = treatment.structures
 # bemaset = treatment.beamset_info
