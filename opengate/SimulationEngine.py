@@ -5,7 +5,7 @@ import sys
 import os
 import opengate_core as g4
 from .ExceptionHandler import *
-from multiprocessing import Process, set_start_method, Queue
+from multiprocessing import Process, set_start_method, Queue, Manager
 
 
 class SimulationEngine(gate.EngineBase):
@@ -83,7 +83,8 @@ class SimulationEngine(gate.EngineBase):
             # (the "force" option is needed for notebooks)
             set_start_method("fork", force=True)
             # set_start_method("spawn")
-            q = Queue()
+            # q = Queue()
+            q = Manager().Queue()
             p = Process(target=self.init_and_start, args=(q,))
             p.start()
             self.state = "started"
