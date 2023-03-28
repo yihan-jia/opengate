@@ -21,6 +21,12 @@ class PhysicsManager:
             "electron": "e-",
             "positron": "e+",
             "proton": "proton",
+        }
+        self.limit_particle_names = {
+            "gamma": "gamma",
+            "electron": "e-",
+            "positron": "e+",
+            "proton": "proton",
             "ion": "GenericIon",
             "deuteron": "deuteron",
             "triton": "triton",
