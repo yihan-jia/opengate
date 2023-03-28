@@ -96,7 +96,7 @@ class SimulationEngine(gate.EngineBase):
             #     time.sleep(60)
             # print("Process has terminated.")
             #==
-            p.join()
+            # p.join()
             #==
             # p.join(timeout=100)
             # if p.is_alive():
