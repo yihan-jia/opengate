@@ -660,6 +660,7 @@ def spots_info_from_txt(txtFile, ionType):
         if line.startswith("####X Y Weight"):
             start_index.append(i + 1)
 
+
     np = sum(ntot)    
     for k in range(nFields):
         for i in range(len(energies)):

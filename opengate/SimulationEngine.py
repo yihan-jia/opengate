@@ -87,7 +87,7 @@ class SimulationEngine(gate.EngineBase):
             p = Process(target=self.init_and_start, args=(q,))
             p.start()
             self.state = "started"
-            
+
             #==
             # start = time.time()
             # p.join(timeout=100)
@@ -96,7 +96,7 @@ class SimulationEngine(gate.EngineBase):
             #     time.sleep(60)
             # print("Process has terminated.")
             #==
-            # p.join()
+            # p.join() # timeout might be needed
             #==
             # p.join(timeout=100)
             # if p.is_alive():
@@ -105,6 +105,7 @@ class SimulationEngine(gate.EngineBase):
             #     print('Process has terminated.')
              #==
                 
+
             self.state = "after"
             output = q.get()
         else:
