@@ -83,7 +83,7 @@ class SimulationEngine(gate.EngineBase):
             # (the "force" option is needed for notebooks)
             set_start_method("fork", force=True)
             # set_start_method("spawn")
-            # q = Queue()
+            # q = Queue() # https://stackoverflow.com/questions/13649625/multiprocessing-in-python-blocked
             q = Manager().Queue()
             p = Process(target=self.init_and_start, args=(q,))
             p.start()
