@@ -118,8 +118,8 @@ sim.set_cut("world", "all", 1000 * km)
 dose = sim.add_actor("DoseActor", "doseInXYZ")
 dose.output = output_path / "abs_dose_ct.mhd"
 dose.mother = patient.name
-dose.size = [200, 200, 200]
-dose.spacing = [1 * mm, 1 * mm, 1 * mm]
+dose.size = [300, 620, 620]
+dose.spacing = [2 * mm, 0.5 * mm, 0.5 * mm]
 dose.hit_type = "random"
 dose.gray = True
 
@@ -159,7 +159,9 @@ keys_for_dcm = ["DoseGridScaling"]  # add here other dcm tags you want in your d
 rd = list(doses.values())[0].dicom_obj  # first dicom dose
 sub_ds = {k: rd[k] for k in rd.dir() if k in keys_for_dcm}
 dcm_name = os.path.join(output_path, "my_output_dose.dcm")
-gate.mhd_2_dicom_dose(img_mhd_out, bemaset.dicom_obj, "PLAN", dcm_name, sub_ds)
+gate.mhd_2_dicom_dose(
+    img_mhd_out, bemaset.dicom_obj, "PLAN", dcm_name, ds=sub_ds, phantom=True
+)
 
 # 1D
 fig, ax = plt.subplots(ncols=1, nrows=1, figsize=(25, 10))
