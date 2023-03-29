@@ -82,6 +82,10 @@ class dose_info(object):
     def refd_beam_number(self):
         return self._beamnr
 
+    @property
+    def dicom_obj(self):
+        return self._rd
+
     @staticmethod
     def get_dose_files(dirpath, rpuid=None, only_physical=False):
         doses = dict()
