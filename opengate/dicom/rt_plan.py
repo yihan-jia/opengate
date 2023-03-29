@@ -707,6 +707,10 @@ class beamset_info(object):
             info["Sanitized RT Plan Label"] = sanitized
         return info
 
+    @property
+    def dicom_obj(self):
+        return self._rp
+
     def __repr__(self):
         s = "\nPLAN\n\t" + "\n\t".join(
             ["{0:30s}: {1}".format(a, self.plan_info[a]) for a in self.plan_attrs]

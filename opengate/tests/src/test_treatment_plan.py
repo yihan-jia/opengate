@@ -10,6 +10,10 @@ paths = gate.get_default_test_paths(__file__, "gate_test044_pbs")
 output_path = paths.output / "output_test051_rtp"
 ref_path = paths.output_ref / "test051_ref"
 
+# create output dir, if it doesn't exist
+if not os.path.isdir(output_path):
+    os.mkdir(output_path)
+
 
 # create the simulation
 sim = gate.Simulation()
@@ -76,11 +80,13 @@ nozzle.size = [500 * mm, 500 * mm, 2 * mm]
 nozzle.material = "G4_WATER"
 
 # treatment info
-rt_plan_path = "/users/ideal/0_Data/02_ref_RTPlans/01_ref_Plans_CT_RTpl_RTs_RTd/03_AbsDose/01_IR2HBLc/E120_0MeVn/RP1.2.752.243.1.1.20230202162643145.2610.40668_tagman.dcm"
-# rt_plan_path = "/home/ideal/0_Data/99_NonRefPlans/Box16_15_C_ISD0_Phys/DCM/RP1.2.752.243.1.1.20190416091012952.3300.34040.dcm"
+
+# rt_plan_path = "/home/ideal/0_Data/02_ref_RTPlans/01_ref_Plans_CT_RTpl_RTs_RTd/03_AbsDose/01_IR2HBLc/E120_0MeVn/RP1.2.752.243.1.1.20230202162643145.2610.40668_tagman.dcm"
+rt_plan_path = "/home/ideal/0_Data/02_ref_RTPlans/01_ref_Plans_CT_RTpl_RTs_RTd/02_2DOptics/01_noRaShi/01_HBL/E120MeVu/RP1.2.752.243.1.1.20220202141407926.4000.48815_tagman.dcm"
+
 treatment = gate.radiation_treatment(rt_plan_path)
 # structs = treatment.structures
-# bemaset = treatment.beamset_info
+bemaset = treatment.beamset_info
 doses = treatment.rt_doses
 ct_image = treatment.ct_image
 mhd_ct = str(ref_path / "absolute_dose_ct.mhd")
@@ -140,10 +146,6 @@ output = sim.start()
 stat = output.get_actor("Stats")
 print(stat)
 
-# create output dir, if it doesn't exist
-if not os.path.isdir(output_path):
-    os.mkdir(output_path)
-
 ## ------ TESTS -------##
 dose_path = gate.scale_dose(
     str(dose.output).replace(".mhd", "_dose.mhd"),
@@ -155,11 +157,11 @@ dose_path = gate.scale_dose(
 img_mhd_out = itk.imread(dose_path)
 
 # write dicom output
-keys_for_dcm = ["PatientName"]
-rd = list(doses.values())[0]._rd  # first dicom dose
+keys_for_dcm = ["DoseGridScaling"]  # add here other dcm tags you want in your dicom
+rd = list(doses.values())[0].dicom_obj  # first dicom dose
 sub_ds = {k: rd[k] for k in rd.dir() if k in keys_for_dcm}
 dcm_name = os.path.join(output_path, "my_output_dose.dcm")
-gate.mhd_2_dicom_dose(img_mhd_out, dcm_name, sub_ds)
+gate.mhd_2_dicom_dose(img_mhd_out, bemaset.dicom_obj, "PLAN", dcm_name, sub_ds)
 
 # 1D
 fig, ax = plt.subplots(ncols=1, nrows=1, figsize=(25, 10))
