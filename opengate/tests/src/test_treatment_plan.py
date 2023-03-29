@@ -84,7 +84,7 @@ nozzle.material = "G4_WATER"
 rt_plan_path = "/home/ideal/0_Data/02_ref_RTPlans/01_ref_Plans_CT_RTpl_RTs_RTd/02_2DOptics/01_noRaShi/01_HBL/E120MeVu/RP1.2.752.243.1.1.20220202141407926.4000.48815_tagman.dcm"
 treatment = gate.radiation_treatment(rt_plan_path)
 # structs = treatment.structures
-bemaset = treatment.beamset_info
+beamset = treatment.beamset_info
 doses = treatment.rt_doses
 ct_image = treatment.ct_image
 mhd_ct = str(ref_path / "absolute_dose_ct.mhd")
@@ -160,7 +160,7 @@ rd = list(doses.values())[0].dicom_obj  # first dicom dose
 sub_ds = {k: rd[k] for k in rd.dir() if k in keys_for_dcm}
 dcm_name = os.path.join(output_path, "my_output_dose.dcm")
 gate.mhd_2_dicom_dose(
-    img_mhd_out, bemaset.dicom_obj, "PLAN", dcm_name, ds=sub_ds, phantom=True
+    img_mhd_out, beamset.dicom_obj, "PLAN", dcm_name, ds=sub_ds, phantom=True
 )
 
 # 1D
