@@ -76,7 +76,7 @@ nozzle.size = [500 * mm, 500 * mm, 2 * mm]
 nozzle.material = "G4_WATER"
 
 # treatment info
-rt_plan_path = "/home/ideal/0_Data/02_ref_RTPlans/01_ref_Plans_CT_RTpl_RTs_RTd/03_AbsDose/01_IR2HBLc/E120_0MeVn/RP1.2.752.243.1.1.20230202162643145.2610.40668_tagman.dcm"
+rt_plan_path = "/users/ideal/0_Data/02_ref_RTPlans/01_ref_Plans_CT_RTpl_RTs_RTd/03_AbsDose/01_IR2HBLc/E120_0MeVn/RP1.2.752.243.1.1.20230202162643145.2610.40668_tagman.dcm"
 # rt_plan_path = "/home/ideal/0_Data/99_NonRefPlans/Box16_15_C_ISD0_Phys/DCM/RP1.2.752.243.1.1.20190416091012952.3300.34040.dcm"
 treatment = gate.radiation_treatment(rt_plan_path)
 # structs = treatment.structures
@@ -129,16 +129,16 @@ tps.set_particles_to_simulate(nSim)
 tps.set_spots_from_rtplan(rt_plan_path)
 tps.initialize_tpsource()
 
-# # add stat actor
-# s = sim.add_actor("SimulationStatisticsActor", "Stats")
-# s.track_types_flag = True
-# # start simulation
-# output = sim.start()
+# add stat actor
+s = sim.add_actor("SimulationStatisticsActor", "Stats")
+s.track_types_flag = True
+# start simulation
+output = sim.start()
 
-# ## -------------END SCANNING------------- ##
-# # print results at the end
-# stat = output.get_actor("Stats")
-# print(stat)
+## -------------END SCANNING------------- ##
+# print results at the end
+stat = output.get_actor("Stats")
+print(stat)
 
 # create output dir, if it doesn't exist
 if not os.path.isdir(output_path):
