@@ -33,7 +33,7 @@ def mhd_2_dicom_dose(
 
     """
     # create default dcm template
-    dcm_ds = create_dicom_dose_template(rtplan, beamnr, phantom=False)
+    dcm_ds = create_dicom_dose_template(rtplan, beamnr, phantom=phantom)
 
     # get info from image
     img = itk.GetArrayFromImage(img_mhd)
