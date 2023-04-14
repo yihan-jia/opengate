@@ -59,28 +59,40 @@ class RBEActor(g4.GateRBEActor, gate.ActorBase):
     def store_lookup_table(self, table_path):
         with open(table_path, "r") as f:
             lines = f.readlines()
-        count = 0
+        # add extra line to sign end of file
+        lines.append("\n")
         start_table = False
-        end_table = False
-        energy = []
-        table = []
+        end_table = True
+        e_table = []
+        v_table = []
         for line in lines:
             if "Fragment" in line:
-                count += 1
                 values = []
+                energy = []
                 start_table = True
                 end_table = False
             elif line.startswith("\n") == False and start_table:
-                if count == 1:  # energy vector is the same for all Z
-                    energy.append(float(line.split()[0]))
+                # if count == 1:  # energy vector is the same for all Z
+                energy.append(float(line.split()[0]))
                 values.append(float(line.split()[1]))
-            elif count and not end_table:
+            elif not end_table:
                 start_table = False
-                if count == 1:
-                    table.append(energy)
-                table.append(values)  # we want to do this only once per table
+                # if count == 1:
+                e_table.append(energy)
+                v_table.append(values)  # we want to do this only once per table
                 end_table = True
-        return table
+        # check if same energy vector for all fragments
+        e_ref = e_table[0]
+        bool_vec = [
+            k for k in e_table if k != e_ref
+        ]  # empty if all energies are the same
+        if bool_vec:
+            raise ValueError(
+                "Energy vector should be the same for each fragment in RBE table"
+            )
+        v_table.insert(0, e_ref)
+
+        return v_table
 
     def __init__(self, user_info):
         if not user_info.lookup_table_path:
