@@ -40,7 +40,7 @@ GateRBEActor::GateRBEActor(py::dict &user_info) : GateVActor(user_info, false) {
   table = new std::vector<G4DataVector *>;
   CreateLookupTable(user_info);
   // test
-  G4double t_v = GetValue(1, 120.12);
+  G4double t_v = GetValue(8, 120.22);
   std::cout << "---------------" << std::endl;
   std::cout << t_v << std::endl;
   std::cout << "---------------" << std::endl;
@@ -182,14 +182,9 @@ void GateRBEActor::CreateLookupTable(py::dict &user_info) {
       DictGetVecofVecDouble(user_info, "lookup_table");
   energies = VectorToG4DataVector(lookupTab[0]);
 
-  table->push_back(VectorToG4DataVector(lookupTab[1]));
-  table->push_back(VectorToG4DataVector(lookupTab[2]));
-  table->push_back(VectorToG4DataVector(lookupTab[3]));
-  table->push_back(VectorToG4DataVector(lookupTab[4]));
-  table->push_back(VectorToG4DataVector(lookupTab[5]));
-  table->push_back(VectorToG4DataVector(lookupTab[6]));
-  table->push_back(VectorToG4DataVector(lookupTab[7]));
-  table->push_back(VectorToG4DataVector(lookupTab[8]));
+  for (int i = 1; i < lookupTab.size(); i++) {
+    table->push_back(VectorToG4DataVector(lookupTab[i]));
+  }
 }
 
 double GateRBEActor::GetValue(int Z, float energy) {
@@ -208,7 +203,6 @@ double GateRBEActor::GetValue(int Z, float energy) {
 
 size_t GateRBEActor::FindLowerBound(G4double x, G4DataVector *values) const {
   size_t lowerBound = 0;
-  ;
   size_t upperBound(values->size() - 1);
 
   while (lowerBound <= upperBound) {
