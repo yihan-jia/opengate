@@ -8,6 +8,30 @@
 #include "GateHelpersDict.h"
 #include "GateHelpers.h"
 
+G4DataVector *VectorToG4DataVector(std::vector<double> data) {
+  G4DataVector *vec = new G4DataVector(data.size());
+  for (int i = 0; i < data.size(); i++) {
+    vec->insertAt(i, data[i]);
+  }
+  return vec;
+}
+
+std::vector<std::vector<double>> DictGetVecofVecDouble(py::dict &user_info,
+                                                       const std::string &key) {
+  DictCheckKey(user_info, key);
+  std::vector<std::vector<double>> vec;
+  auto com = py::list(user_info[key.c_str()]);
+
+  for (auto x : com) {
+    std::vector<double> l;
+    for (auto y : x) {
+      l.push_back(py::float_(py::str(y)));
+    }
+    vec.push_back(l);
+  }
+  return vec;
+}
+
 void DictCheckKey(py::dict &user_info, const std::string &key) {
   if (user_info.contains(key.c_str()))
     return;

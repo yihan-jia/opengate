@@ -3,6 +3,7 @@ from .ARFActor import *
 from .ARFTrainingDatasetActor import *
 from .DoseActor import *
 from .LETActor import *
+from .RBEActor import *
 from .DigitizerAdderActor import *
 from .DigitizerReadoutActor import *
 from .DigitizerEnergyWindowsActor import *
@@ -19,6 +20,7 @@ actor_type_names = {
     SimulationStatisticsActor,
     DoseActor,
     LETActor,
+    RBEActor,
     SourceInfoActor,
     PhaseSpaceActor,
     DigitizerHitsCollectionActor,

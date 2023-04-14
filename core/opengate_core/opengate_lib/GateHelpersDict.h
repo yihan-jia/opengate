@@ -8,6 +8,7 @@
 #ifndef OPENGATE_CORE_OPENGATEHELPERSDICT_H
 #define OPENGATE_CORE_OPENGATEHELPERSDICT_H
 
+#include <G4DataVector.hh>
 #include <G4RotationMatrix.hh>
 #include <G4ThreeVector.hh>
 #include <iostream>
@@ -15,6 +16,11 @@
 #include <pybind11/stl.h>
 
 namespace py = pybind11;
+
+G4DataVector *VectorToG4DataVector(std::vector<double> data);
+
+std::vector<std::vector<double>> DictGetVecofVecDouble(py::dict &user_info,
+                                                       const std::string &key);
 
 void DictCheckKey(py::dict &user_info, const std::string &key);
 
