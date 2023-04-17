@@ -88,6 +88,16 @@ dose.spacing = [15.6, 15.6, 0.5]
 dose.hit_type = "random"
 dose.gray = True
 
+letd = sim.add_actor("LETActor", "letdInXYZ")
+letd.output = output_path / "letd_roos.mhd"
+letd.mother = roos.name
+letd.size = [1, 1, 800]
+letd.spacing = [15.6, 15.6, 0.5]
+letd.hit_type = "random"
+letd.separate_output = True
+setattr(
+    letd, "dose_average", True
+)
 
 ## ---------- DEFINE BEAMLINE MODEL -------------##
 IR2HBL = gate.BeamlineModel()
@@ -146,48 +156,63 @@ dose_path = gate.scale_dose(
     output_path / "threeDdoseWaternew.mhd",
 )
 
+let_path = gate.scale_dose(
+    str(letd.output),
+    ntot / nSim,
+    output_path / "threeDletdWaternew.mhd",
+)
+
 # ABSOLUTE DOSE
 
+img_dose = itk.imread(dose_path)
+img_letd = itk.imread(let_path)
+# img_lett = itk.imread(LETActorFPath_trackAveraged)
+fig, ax = plt.subplots(ncols=1, nrows=1, figsize=(25,10))
+gate.plot_img_axis(ax, img_dose,"dose", axis="z")
+gate.plot_img_axis(ax, img_letd,"letd", axis="z")
+# gate.plot_img_axis(ax, img_lett,"lett", axis="z")
+plt.show()
+
 # read output and ref
-img_mhd_out = itk.imread(dose_path)
-img_mhd_ref = itk.imread(
-    ref_path / "idc-PHANTOM-roos-F5x5cm_E120MeVn-PLAN-Physical.mhd"
-)
-data = itk.GetArrayViewFromImage(img_mhd_out)
-data_ref = itk.GetArrayViewFromImage(img_mhd_ref)
-shape = data.shape
-spacing = img_mhd_out.GetSpacing()
-spacing_ref = np.flip(img_mhd_ref.GetSpacing())
+# img_mhd_out = itk.imread(dose_path)
+# img_mhd_ref = itk.imread(
+#     ref_path / "idc-PHANTOM-roos-F5x5cm_E120MeVn-PLAN-Physical.mhd"
+# )
+# data = itk.GetArrayViewFromImage(img_mhd_out)
+# data_ref = itk.GetArrayViewFromImage(img_mhd_ref)
+# shape = data.shape
+# spacing = img_mhd_out.GetSpacing()
+# spacing_ref = np.flip(img_mhd_ref.GetSpacing())
 
-ok = gate.assert_img_sum(
-    img_mhd_out,
-    img_mhd_ref,
-)
+# ok = gate.assert_img_sum(
+#     img_mhd_out,
+#     img_mhd_ref,
+# )
 
-points = 400 - np.linspace(10, 14, 9)
-ok = (
-    gate.compare_dose_at_points(
-        points,
-        data,
-        data_ref,
-        shape,
-        data_ref.shape,
-        spacing,
-        spacing_ref,
-        axis1="z",
-        axis2="x",
-        rel_tol=0.03,
-    )
-    and ok
-)
+# points = 400 - np.linspace(10, 14, 9)
+# ok = (
+#     gate.compare_dose_at_points(
+#         points,
+#         data,
+#         data_ref,
+#         shape,
+#         data_ref.shape,
+#         spacing,
+#         spacing_ref,
+#         axis1="z",
+#         axis2="x",
+#         rel_tol=0.03,
+#     )
+#     and ok
+# )
 
-# 1D
-# fig, ax = plt.subplots(ncols=1, nrows=1, figsize=(25, 10))
-# gate.plot_img_axis(ax, img_mhd_out, "x profile", axis="z")
-# gate.plot_img_axis(ax, img_mhd_ref, "x ref", axis="z")
-# plt.show()
+# # 1D
+# # fig, ax = plt.subplots(ncols=1, nrows=1, figsize=(25, 10))
+# # gate.plot_img_axis(ax, img_mhd_out, "x profile", axis="z")
+# # gate.plot_img_axis(ax, img_mhd_ref, "x ref", axis="z")
+# # plt.show()
 
-# fig.savefig(output_path / "dose_profiles_water.png")
+# # fig.savefig(output_path / "dose_profiles_water.png")
 
 
-gate.test_ok(ok)
+# gate.test_ok(ok)

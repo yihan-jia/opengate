@@ -43,11 +43,8 @@ class RBEActor(g4.GateRBEActor, gate.ActorBase):
         user_info.physical_volume_index = None
         user_info.hit_type = "random"
 
-        ## Settings for LET averaging
-        user_info.dose_average = False
-        user_info.track_average = False
-        user_info.let_to_other_material = False
-        user_info.let_to_water = False
+        user_info.rbe_to_other_material = False
+        user_info.rbe_to_water = False
         user_info.other_material = ""
         user_info.separate_output = False
 
@@ -55,6 +52,11 @@ class RBEActor(g4.GateRBEActor, gate.ActorBase):
         user_info.rbe_model = "mkm"
         user_info.lookup_table_path = None
         user_info.lookup_table = None
+        
+        user_info.r_n = 0
+        user_info.r_d = 0
+        user_info.alpha_0 = 0
+        user_info.beta = 0
 
     def store_lookup_table(self, table_path):
         with open(table_path, "r") as f:
@@ -93,6 +95,13 @@ class RBEActor(g4.GateRBEActor, gate.ActorBase):
         v_table.insert(0, e_ref)
 
         return v_table
+    
+    def init_const(self, user_info):
+        if user_info.model == "mkm":
+            user_info.r_n = 3.9 #um
+            user_info.r_d = 0.32 #um
+            user_info.alpha_0 = 0.172 #Gy-1
+            user_info.beta = 0.0615 #Gy-2
 
     def __init__(self, user_info):
         if not user_info.lookup_table_path:
@@ -104,6 +113,8 @@ class RBEActor(g4.GateRBEActor, gate.ActorBase):
             user_info.lookup_table_path
         )  # to pass it on C++ side
         print(type(user_info.lookup_table))
+        
+        self.init_const(user_info)
 
         gate.ActorBase.__init__(self, user_info)
         g4.GateRBEActor.__init__(self, user_info.__dict__)
@@ -263,18 +274,15 @@ class RBEActor(g4.GateRBEActor, gate.ActorBase):
         # write the image at the end of the run
         # FIXME : maybe different for several runs
         if self.user_info.output:
-            suffix = ""
-            if self.user_info.dose_average:
-                suffix += "_letd"
-            elif self.user_info.track_average:
-                suffix += "_lett"
+            suffix = "_"+self.user_info.rbe_model
+            
             if self.user_info.let_to_other_material or self.user_info.let_to_water:
                 suffix += f"_convto_{self.user_info.other_material}"
 
             fPath = str(self.user_info.output).replace(".mhd", f"{suffix}.mhd")
             self.user_info.output = fPath
             # self.output = fPath
-            self.py_RBEd_image = gate.divide_itk_images(
+            self.py_alpha_mix_image = gate.divide_itk_images(
                 img1_numerator=self.py_numerator_image,
                 img2_denominator=self.py_denominator_image,
                 filterVal=0,

@@ -39,11 +39,6 @@ GateRBEActor::GateRBEActor(py::dict &user_info) : GateVActor(user_info, false) {
   energies = new G4DataVector;
   table = new std::vector<G4DataVector *>;
   CreateLookupTable(user_info);
-  // test
-  G4double t_v = GetValue(8, 120.22);
-  std::cout << "---------------" << std::endl;
-  std::cout << t_v << std::endl;
-  std::cout << "---------------" << std::endl;
 
   // Action for this actor: during stepping
   fActions.insert("SteppingAction");
@@ -58,6 +53,12 @@ GateRBEActor::GateRBEActor(py::dict &user_info) : GateVActor(user_info, false) {
   fInitialTranslation = DictGetG4ThreeVector(user_info, "translation");
   // Hit type (random, pre, post etc)
   fHitType = DictGetStr(user_info, "hit_type");
+  // RBE model type (mkm, etc)
+  fRBEmodel = DictGetStr(user_info, "rbe_model");
+  if (fRBEmodel == "mkm") {
+	  fAlpha0 = DictGetDouble(user_info, "alpha_0");
+	  fBeta = DictGetDouble(user_info, "beta");
+  }
 }
 
 void GateRBEActor::ActorInitialize() { emcalc = new G4EmCalculator; }
@@ -127,6 +128,7 @@ void GateRBEActor::SteppingAction(G4Step *step) {
     // double density_water = 1.0;
     //  other material
     const G4ParticleDefinition *p = step->GetTrack()->GetParticleDefinition();
+    
 
     auto energy1 = step->GetPreStepPoint()->GetKineticEnergy() / CLHEP::MeV;
     auto energy2 = step->GetPostStepPoint()->GetKineticEnergy() / CLHEP::MeV;
@@ -144,11 +146,17 @@ void GateRBEActor::SteppingAction(G4Step *step) {
 
     if (p == G4Gamma::Gamma())
       p = G4Electron::Electron();
-    auto dedx_currstep =
+    /*auto dedx_currstep =
         emcalc->ComputeElectronicDEDX(energy, p, current_material, dedx_cut) /
-        CLHEP::MeV * CLHEP::mm;
+        CLHEP::MeV * CLHEP::mm;*/
+	auto charge = int(p->GetPDGCharge())
+	auto table_value = GetValue(charge, energy) //energy has unit?
+	auto alpha_currstep = fAlpha0 + fBeta*table_value
+	std::cout << "---------------" << std::endl;
+    std::cout << "Charge: " << charge << ", energy: " << energy << ", z*_1D: " << table_value << std::endl;
+    std::cout << "---------------" << std::endl;
 
-    auto steplength = step->GetStepLength() / CLHEP::mm;
+    //auto steplength = step->GetStepLength() / CLHEP::mm;
     double scor_val_num = 0.;
     double scor_val_den = 0.;
 
@@ -161,7 +169,7 @@ void GateRBEActor::SteppingAction(G4Step *step) {
       edep *= SPR_otherMaterial;
       dedx_currstep *= SPR_otherMaterial;
     }
-
+	/*
     if (fdoseAverage) {
       scor_val_num = edep * dedx_currstep / CLHEP::MeV / CLHEP::MeV * CLHEP::mm;
       scor_val_den = edep / CLHEP::MeV;
@@ -169,9 +177,12 @@ void GateRBEActor::SteppingAction(G4Step *step) {
       scor_val_num = steplength * dedx_currstep * w / CLHEP::MeV;
       scor_val_den = steplength * w / CLHEP::mm;
     }
+    */
+    score_val_num = edep * alpha_currstep
+    score_val_den = edep //unit?
     ImageAddValue<ImageType>(cpp_numerator_image, index, scor_val_num);
     ImageAddValue<ImageType>(cpp_denominator_image, index, scor_val_den);
-    //}
+    
 
   } // else : outside the image
 }
