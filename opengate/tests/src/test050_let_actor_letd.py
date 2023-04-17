@@ -6,6 +6,7 @@ from scipy.spatial.transform import Rotation
 import matplotlib.pyplot as plt
 import sys
 import itk
+import numpy as np
 
 paths = gate.get_default_test_paths(__file__, "test050_let_actor_letd")
 
@@ -165,18 +166,32 @@ print()
 # stats_ref = gate.read_stat_file(paths.gate_output / "stats.txt")
 # is_ok = gate.assert_stats(stat, stats_ref, 0.14)
 
-DoseActorFPath = output.get_actor(doseActorName_IDD_d).user_info.output
+# DoseActorFPath = output.get_actor(doseActorName_IDD_d).user_info.output
 LETActorFPath_doseAveraged = output.get_actor(LETActorName_IDD_d).user_info.output
+print(f"LETd path: {LETActorFPath_doseAveraged}")
 LETActorFPath_trackAveraged = output.get_actor(LETActorName_IDD_t).user_info.output
 
-img_dose = itk.imread(DoseActorFPath)
+# img_dose = itk.imread(DoseActorFPath)
 img_letd = itk.imread(LETActorFPath_doseAveraged)
 img_lett = itk.imread(LETActorFPath_trackAveraged)
+data_letd = np.squeeze(itk.GetArrayViewFromImage(img_letd).ravel())
+data_lett = np.squeeze(itk.GetArrayViewFromImage(img_lett).ravel())
+
 fig, ax = plt.subplots(ncols=1, nrows=1, figsize=(25,10))
-gate.plot_img_axis(ax, img_dose,"dose", axis="z")
-# gate.plot_img_axis(ax, img_letd,"letd", axis="z")
-# gate.plot_img_axis(ax, img_lett,"lett", axis="z")
+# gate.plot_img_axis(ax, img_dose,"dose", axis="z")
+ax.plot(data_letd,label = "letd")
+ax.plot(data_lett,label = "lett")
+ax.set_xlim(21,40)
+visible_y = max(max(data_letd[21:40]),max(data_lett[21:40]))
+ax.set_ylim(0,visible_y)
+ax.legend()
+#gate.plot_img_axis(ax, data_lett,"lett", axis="z")
 plt.show()
+
+def plot_profile(ax, y, y_spacing=1, label=""):
+    x = np.arange(len(y)) * y_spacing
+    ax.plot(x, y, label=label)
+    ax.legend()
 
 # fNameIDD = "test050_IDD__Proton_Energy1MeVu_RiFiout-Edep.mhd"
 # """
