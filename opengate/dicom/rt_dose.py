@@ -87,7 +87,7 @@ class dose_info(object):
         return self._rd
 
     @staticmethod
-    def get_dose_files(dirpath, rpuid=None, only_physical=False):
+    def get_dose_files(dirpath, rpuid=None, only_physical=False, clinical=True):
         doses = dict()
         # beam_numbers = [str(beam.BeamNumber) for beam in self._rp.IonBeamSequence]
         print("going to find RD dose files in directory {}".format(dirpath))
@@ -102,29 +102,39 @@ class dose_info(object):
                 continue  # not a RD dose file
             if dcm.SOPClassUID.name != "RT Dose Storage":
                 continue  # not a RD dose file
-            # check file integrity
-            check_file(dcm)
 
-            drefrtp0 = dcm.ReferencedRTPlanSequence[0]
-            if rpuid:
-                uid = str(drefrtp0.ReferencedSOPInstanceUID)
-                if uid != rpuid:
-                    print("UID {} != RP UID {}".format(uid, rpuid))
-                    continue  # dose file for a different plan
             dose_type = str(dcm.DoseType).upper()
             dose_sum_type = str(dcm.DoseSummationType)
 
-            if dose_sum_type.upper() == "PLAN":
-                # the physical or effective plan dose file (hopefully)
-                label = "PLAN"
+            if clinical:
+                # check file integrity
+                check_file(dcm)
+
+                drefrtp0 = dcm.ReferencedRTPlanSequence[0]
+                if rpuid:
+                    uid = str(drefrtp0.ReferencedSOPInstanceUID)
+                    if uid != rpuid:
+                        print("UID {} != RP UID {}".format(uid, rpuid))
+                        continue  # dose file for a different plan
+
+                if dose_sum_type.upper() == "PLAN":
+                    # the physical or effective plan dose file (hopefully)
+                    label = "PLAN"
+                else:
+                    # a beam dose file (hopefully)
+                    label = str(
+                        drefrtp0.ReferencedFractionGroupSequence[0]
+                        .ReferencedBeamSequence[0]
+                        .ReferencedBeamNumber
+                    )
+                    print("BEAM DOSE FILE FOR {}".format(label))
             else:
-                # a beam dose file (hopefully)
-                label = str(
-                    drefrtp0.ReferencedFractionGroupSequence[0]
-                    .ReferencedBeamSequence[0]
-                    .ReferencedBeamNumber
-                )
-                print("BEAM DOSE FILE FOR {}".format(label))
+                if dose_sum_type.upper() == "PLAN":
+                    # the physical or effective plan dose file (hopefully)
+                    label = "PLAN"
+                else:
+                    label = dose_type
+
             if dose_type == "EFFECTIVE":
                 print("got EFFECTIVE=RBE dose for {}".format(label))
                 label += "_RBE"

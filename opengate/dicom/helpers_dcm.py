@@ -14,7 +14,7 @@ from datetime import datetime
 
 
 def mhd_2_dicom_dose(
-    img_mhd, rtplan, beamnr, filename, ds={}, physical=True, phantom=False
+    img_mhd, rtplan, beamnr, filename, *, ds={}, physical=True, phantom=False
 ):
     """
     Parameters
@@ -47,7 +47,8 @@ def mhd_2_dicom_dose(
     dcm_ds.Rows = img_size[1]
     dcm_ds.Columns = img_size[0]
     dcm_ds.NumberOfFrames = img_size[2]
-    dcm_ds.PixelSpacing = [img_spacing[1], img_spacing[0]]
+    dcm_ds.PixelSpacing[0] = img_spacing[1]
+    dcm_ds.PixelSpacing[1] = img_spacing[0]
     dcm_ds.SliceThickness = img_spacing[2]
     dcm_ds.ImagePositionPatient = list(img_origin)
     dcm_ds.DoseType = "PHYSICAL" if physical else "EFFECTIVE"

@@ -81,17 +81,19 @@ nozzle.material = "G4_WATER"
 
 # treatment info
 
-# rt_plan_path = "/home/ideal/0_Data/02_ref_RTPlans/01_ref_Plans_CT_RTpl_RTs_RTd/03_AbsDose/01_IR2HBLc/E120_0MeVn/RP1.2.752.243.1.1.20230202162643145.2610.40668_tagman.dcm"
-rt_plan_path = "/home/ideal/0_Data/02_ref_RTPlans/01_ref_Plans_CT_RTpl_RTs_RTd/02_2DOptics/01_noRaShi/01_HBL/E120MeVu/RP1.2.752.243.1.1.20220202141407926.4000.48815_tagman.dcm"
+rt_plan_path = "/home/aresch/Data/07_TEDD_test_cases/01_HRP_test/RP1.2.752.243.1.1.20230414101102666.1900.76618.dcm"
+# rt_plan_path = "/home/ideal/0_Data/02_ref_RTPlans/01_ref_Plans_CT_RTpl_RTs_RTd/02_2DOptics/01_noRaShi/01_HBL/E120MeVu/RP1.2.752.243.1.1.20220202141407926.4000.48815_tagman.dcm"
+treatment = gate.radiation_treatment(rt_plan_path, clinical=False)
 
-treatment = gate.radiation_treatment(rt_plan_path)
 # structs = treatment.structures
-bemaset = treatment.beamset_info
+beamset = treatment.beamset_info
 doses = treatment.rt_doses
 ct_image = treatment.ct_image
 mhd_ct = str(ref_path / "absolute_dose_ct.mhd")
 ct_image.write_to_file(mhd_ct)
 
+print(doses.keys())
+exit()
 # # container
 # phantom = sim.add_volume("Box", "phantom")
 # phantom.size = [500 * mm, 500 * mm, 400 * mm]
@@ -120,8 +122,8 @@ sim.set_cut("world", "all", 1000 * km)
 dose = sim.add_actor("DoseActor", "doseInXYZ")
 dose.output = output_path / "abs_dose_ct.mhd"
 dose.mother = patient.name
-dose.size = [200, 200, 200]
-dose.spacing = [1 * mm, 1 * mm, 1 * mm]
+dose.size = [300, 620, 620]
+dose.spacing = [2 * mm, 0.5 * mm, 0.5 * mm]
 dose.hit_type = "random"
 dose.gray = True
 
@@ -161,7 +163,9 @@ keys_for_dcm = ["DoseGridScaling"]  # add here other dcm tags you want in your d
 rd = list(doses.values())[0].dicom_obj  # first dicom dose
 sub_ds = {k: rd[k] for k in rd.dir() if k in keys_for_dcm}
 dcm_name = os.path.join(output_path, "my_output_dose.dcm")
-gate.mhd_2_dicom_dose(img_mhd_out, bemaset.dicom_obj, "PLAN", dcm_name, sub_ds)
+gate.mhd_2_dicom_dose(
+    img_mhd_out, beamset.dicom_obj, "PLAN", dcm_name, ds=sub_ds, phantom=True
+)
 
 # 1D
 fig, ax = plt.subplots(ncols=1, nrows=1, figsize=(25, 10))

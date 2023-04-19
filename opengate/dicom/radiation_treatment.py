@@ -12,7 +12,7 @@ import opengate as gate
 class radiation_treatment:
     # NOTE: we assume that all dcm files concerning a specific plan are in the sane folder
     # Dicom consistency is checked when creating the correspondent object
-    def __init__(self, rp_path):
+    def __init__(self, rp_path, clinical=True):
         self.dcm_dir = os.path.dirname(rp_path)  # directory with all dicom files
 
         # RT plan as beamset_info object
@@ -25,7 +25,9 @@ class radiation_treatment:
         # RT doses: dictionary with dose info for each RD file. One RD for each beam
         print("----------------------------")
         print("Get RD files")
-        self.rt_doses = gate.dose_info.get_dose_files(self.dcm_dir, self.uid)
+        self.rt_doses = gate.dose_info.get_dose_files(
+            self.dcm_dir, self.uid, clinical=clinical
+        )
 
         # RT structures
         print("----------------------------")
