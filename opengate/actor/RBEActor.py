@@ -36,7 +36,7 @@ class RBEActor(g4.GateRBEActor, gate.ActorBase):
         mm = gate.g4_units("mm")
         user_info.size = [10, 10, 10]
         user_info.spacing = [1 * mm, 1 * mm, 1 * mm]
-        user_info.output = "RBEActor.mhd"  # FIXME change to 'output' ?
+        user_info.output = "RBEActor.mhd"
         user_info.translation = [0, 0, 0]
         user_info.img_coord_system = None
         user_info.output_origin = None
@@ -156,9 +156,7 @@ class RBEActor(g4.GateRBEActor, gate.ActorBase):
         size = np.array(self.user_info.size)
         spacing = np.array(self.user_info.spacing)
         self.py_numerator_image = gate.create_3d_image(size, spacing, "double")
-        # TODO remove code
-        # self.py_denominator_image = gate.create_3d_image(size, spacing)
-        # self.py_output_image = gate.create_3d_image(size, spacing)
+
         # compute the center, using translation and half pixel spacing
         self.img_origin_during_run = (
             -size * spacing / 2.0 + spacing / 2.0 + self.user_info.translation
@@ -208,7 +206,7 @@ class RBEActor(g4.GateRBEActor, gate.ActorBase):
             self.py_numerator_image, self.cpp_numerator_image, self.first_run
         )
 
-        # TODO
+
         self.py_denominator_image = gate.create_image_like(
             self.py_numerator_image, pixel_type="double"
         )

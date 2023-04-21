@@ -53,7 +53,7 @@ GateRBEActor::GateRBEActor(py::dict &user_info) : GateVActor(user_info, false) {
   fInitialTranslation = DictGetG4ThreeVector(user_info, "translation");
   // Hit type (random, pre, post etc)
   fHitType = DictGetStr(user_info, "hit_type");
-  // RBE model type (mkm, etc)
+  // Option: RBE model type (mkm, etc)
   fRBEmodel = DictGetStr(user_info, "rbe_model");
   if (fRBEmodel == "mkm") {
 	  fAlpha0 = DictGetDouble(user_info, "alpha_0");
@@ -149,9 +149,9 @@ void GateRBEActor::SteppingAction(G4Step *step) {
     /*auto dedx_currstep =
         emcalc->ComputeElectronicDEDX(energy, p, current_material, dedx_cut) /
         CLHEP::MeV * CLHEP::mm;*/
-	auto charge = int(p->GetPDGCharge())
-	auto table_value = GetValue(charge, energy) //energy has unit?
-	auto alpha_currstep = fAlpha0 + fBeta*table_value
+	auto charge = int(p->GetPDGCharge());
+	auto table_value = GetValue(charge, energy); //energy has unit?
+	auto alpha_currstep = fAlpha0 + fBeta*table_value;
 	std::cout << "---------------" << std::endl;
     std::cout << "Charge: " << charge << ", energy: " << energy << ", z*_1D: " << table_value << std::endl;
     std::cout << "---------------" << std::endl;
@@ -165,9 +165,9 @@ void GateRBEActor::SteppingAction(G4Step *step) {
       auto dedx_water =
           emcalc->ComputeElectronicDEDX(energy, p, water, dedx_cut) /
           CLHEP::MeV * CLHEP::mm;
-      auto SPR_otherMaterial = dedx_water / dedx_currstep;
-      edep *= SPR_otherMaterial;
-      dedx_currstep *= SPR_otherMaterial;
+      //auto SPR_otherMaterial = dedx_water / dedx_currstep;
+      //edep *= SPR_otherMaterial;
+      //dedx_currstep *= SPR_otherMaterial;
     }
 	/*
     if (fdoseAverage) {
@@ -178,8 +178,8 @@ void GateRBEActor::SteppingAction(G4Step *step) {
       scor_val_den = steplength * w / CLHEP::mm;
     }
     */
-    score_val_num = edep * alpha_currstep
-    score_val_den = edep //unit?
+    scor_val_num = edep * alpha_currstep;
+    scor_val_den = edep; //unit?
     ImageAddValue<ImageType>(cpp_numerator_image, index, scor_val_num);
     ImageAddValue<ImageType>(cpp_denominator_image, index, scor_val_den);
     

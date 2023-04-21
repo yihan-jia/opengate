@@ -50,12 +50,18 @@ public:
   bool ftrackAverage;
   bool fRBEtoOtherMaterial;
   std::string fotherMaterial;
+  
+  // RBE specific
+  std::string fRBEmodel;
+  double fAlpha0;
+  double fBeta;
+  
 
 private:
   // RBE specific
   G4DataVector *energies;
   std::vector<G4DataVector *> *table;
-
+  
   void CreateLookupTable(py::dict &user_info);
   double GetValue(int Z, float energy);
   size_t FindLowerBound(G4double x, G4DataVector *values) const;
@@ -67,6 +73,8 @@ private:
 
   G4EmCalculator *emcalc;
   G4Material *water;
+
+  
 };
 
 #endif // GateRBEActor_h
