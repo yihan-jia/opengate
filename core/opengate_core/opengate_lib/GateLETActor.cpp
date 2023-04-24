@@ -103,6 +103,8 @@ void GateLETActor::SteppingAction(G4Step *step) {
     // With mutex (thread)
     // TODO auto lock
     // G4AutoLock mutex(&SetPixelMutex);
+    
+    std::cout<<"Event ID: " << event_id << std::endl;
 
     // get edep in MeV (take weight into account)
     auto w = step->GetTrack()->GetWeight();
@@ -159,6 +161,7 @@ void GateLETActor::SteppingAction(G4Step *step) {
     }
     ImageAddValue<ImageType>(cpp_numerator_image, index, scor_val_num);
     ImageAddValue<ImageType>(cpp_denominator_image, index, scor_val_den);
+    std::cout << "Index: " << index << "is written in images. " << std::endl;
     //}
 
   } // else : outside the image

@@ -33,6 +33,7 @@ public:
 
   // Called every time a Run starts (all threads)
   virtual void BeginOfRunAction(const G4Run *run);
+  
 
   virtual void EndSimulationAction();
 

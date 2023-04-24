@@ -62,7 +62,7 @@ GateRBEActor::GateRBEActor(py::dict &user_info) : GateVActor(user_info, false) {
 
 void GateRBEActor::ActorInitialize() { emcalc = new G4EmCalculator; }
 
-void GateRBEActor::BeginOfRunAction(const G4Run *) {
+void GateRBEActor::BeginOfRunAction(const G4Run *run) {
   // Important ! The volume may have moved, so we re-attach each run
   AttachImageToVolume<ImageType>(cpp_numerator_image, fPhysicalVolumeName,
                                  fInitialTranslation);
@@ -73,6 +73,8 @@ void GateRBEActor::BeginOfRunAction(const G4Run *) {
   fVoxelVolume = sp[0] * sp[1] * sp[2];
   static G4Material *water =
       G4NistManager::Instance()->FindOrBuildMaterial(fotherMaterial);
+      
+  std::cout<<"Run: " << run->GetRunID() << " starts." <<std::endl;
 }
 
 void GateRBEActor::SteppingAction(G4Step *step) {
@@ -115,6 +117,10 @@ void GateRBEActor::SteppingAction(G4Step *step) {
     // With mutex (thread)
     // TODO auto lock
     // G4AutoLock mutex(&SetPixelMutex);
+    
+    auto event_id =
+          G4RunManager::GetRunManager()->GetCurrentEvent()->GetEventID();
+	std::cout<<"Event ID: " << event_id << std::endl;
 
     // get edep in MeV (take weight into account)
     auto w = step->GetTrack()->GetWeight();
@@ -149,13 +155,11 @@ void GateRBEActor::SteppingAction(G4Step *step) {
         emcalc->ComputeElectronicDEDX(energy, p, current_material, dedx_cut) /
         CLHEP::MeV * CLHEP::mm;*/
 	auto charge = int(p->GetPDGCharge());
-	auto table_value = GetValue(charge, energy); //energy has unit?
+	auto table_value = GetValue(charge, energy/12); //energy has unit?
 	auto alpha_currstep = fAlpha0 + fBeta*table_value;
-	/*
-	std::cout << "---------------" << std::endl;
-    std::cout << "Charge: " << charge << ", energy: " << energy << ", z*_1D: " << table_value << std::endl;
-    std::cout << "---------------" << std::endl;
-    * */
+
+    std::cout << "Charge: " << charge << ", energy: " << energy/12 << ", z*_1D: " << table_value << std::endl;
+
 
     //auto steplength = step->GetStepLength() / CLHEP::mm;
     double scor_val_num = 0.;
@@ -205,6 +209,10 @@ double GateRBEActor::GetValue(int Z, float energy) {
   // initalize value
   G4double y = 0;
   // get table values for the given Z
+  if (Z > 6 ){
+	  std::cout<< "Particle Z>6" << std::endl;
+	  return 0;}
+	  
   G4DataVector *data = (*table)[Z - 1];
   // find the index of the lower bound energy to the given energy
   size_t bin = FindLowerBound(energy, energies);
