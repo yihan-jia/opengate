@@ -46,8 +46,7 @@ public:
 
   // Option: indicate if we must compute dose in Gray also
   std::string fPhysicalVolumeName;
-  bool fdoseAverage;
-  bool ftrackAverage;
+
   bool fRBEtoOtherMaterial;
   std::string fotherMaterial;
   

@@ -347,6 +347,48 @@ def divide_itk_images(
     imgarrOut.CopyInformation(img1_numerator)
     return imgarrOut
 
+def multiply_itk_images(
+    img1, img2, filterVal=0, replaceFilteredVal=0
+):
+    imgarr1 = itk.array_view_from_image(img1)
+    imgarr2 = itk.array_view_from_image(img2)
+    imgarrOut = imgarr1.copy()
+    L_filterInv = imgarr2 != filterVal
+    imgarrOut[L_filterInv] = np.multiply(imgarr1[L_filterInv], imgarr2[L_filterInv])
+
+    imgarrOut[np.invert(L_filterInv)] = replaceFilteredVal
+    imgarrOut = itk.image_from_array(imgarrOut)
+    imgarrOut.CopyInformation(img1)
+    return imgarrOut
+
+def square_itk_images(
+    img1, filterVal=0, replaceFilteredVal=0
+):
+    imgarr1 = itk.array_view_from_image(img1)
+
+    imgarrOut = imgarr1.copy()
+    L_filterInv = imgarr1 != filterVal
+    imgarrOut[L_filterInv] = np.multiply(imgarr1[L_filterInv], imgarr1[L_filterInv])
+
+    imgarrOut[np.invert(L_filterInv)] = replaceFilteredVal
+    imgarrOut = itk.image_from_array(imgarrOut)
+    imgarrOut.CopyInformation(img1)
+    return imgarrOut
+
+def add_itk_images(
+    img1, img2, filterVal=0, replaceFilteredVal=0
+):
+    imgarr1 = itk.array_view_from_image(img1)
+    imgarr2 = itk.array_view_from_image(img2)
+    imgarrOut = imgarr1.copy()
+    L_filterInv = imgarr2 != filterVal
+    imgarrOut[L_filterInv] = imgarr1[L_filterInv] + imgarr2[L_filterInv]
+
+    imgarrOut[np.invert(L_filterInv)] = replaceFilteredVal
+    imgarrOut = itk.image_from_array(imgarrOut)
+    imgarrOut.CopyInformation(img1)
+    return imgarrOut
+
 
 def split_spect_projections(input_filenames, nb_ene):
     """

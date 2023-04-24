@@ -102,6 +102,9 @@ class RBEActor(g4.GateRBEActor, gate.ActorBase):
             user_info.r_d = 0.32 #um
             user_info.alpha_0 = 0.172 #Gy-1
             user_info.beta = 0.0615 #Gy-2
+            
+        user_info.alpha_ref = 0.764 #Gy-1
+        user_info.beta_ref = 0.0615 #Gy-2
 
     def __init__(self, user_info):
         if not user_info.lookup_table_path:
@@ -164,18 +167,15 @@ class RBEActor(g4.GateRBEActor, gate.ActorBase):
         # for initialization during the first run
         self.first_run = True
 
-        if self.user_info.dose_average == self.user_info.track_average:
-            gate.fatal(
-                f"Ambiguous to enable dose and track averaging: \ndose_average: {self.user_info.dose_average} \ntrack_average: { self.user_info.track_average} \nOnly one option can and must be set to True"
-            )
+
 
         if self.user_info.other_material:
-            self.user_info.let_to_other_material = True
-        if self.user_info.let_to_other_material and not self.user_info.other_material:
+            self.user_info.rbe_to_other_material = True
+        if self.user_info.rbe_to_other_material and not self.user_info.other_material:
             gate.fatal(
-                f"let_to_other_material enabled, but other_material not set: {self.user_info.other_material}"
+                f"rbe_to_other_material enabled, but other_material not set: {self.user_info.other_material}"
             )
-        if self.user_info.let_to_water:
+        if self.user_info.rbe_to_water:
             self.user_info.other_material = "G4_WATER"
 
     def StartSimulationAction(self):
@@ -274,7 +274,7 @@ class RBEActor(g4.GateRBEActor, gate.ActorBase):
         if self.user_info.output:
             suffix = "_"+self.user_info.rbe_model
             
-            if self.user_info.let_to_other_material or self.user_info.let_to_water:
+            if self.user_info.rbe_to_other_material or self.user_info.rbe_to_water:
                 suffix += f"_convto_{self.user_info.other_material}"
 
             fPath = str(self.user_info.output).replace(".mhd", f"{suffix}.mhd")
@@ -286,7 +286,10 @@ class RBEActor(g4.GateRBEActor, gate.ActorBase):
                 filterVal=0,
                 replaceFilteredVal=0,
             )
-            itk.imwrite(self.py_RBEd_image, gate.check_filename_type(fPath))
+            
+            
+            #itk.imwrite(self.py_RBE_image, gate.check_filename_type(fPath))
+            itk.imwrite(self.py_alpha_mix_image, gate.check_filename_type(str(self.user_info.output).replace(".mhd","_alpha.mhd")))
 
             # for parrallel computation we need to provide both outputs
             if self.user_info.separate_output:

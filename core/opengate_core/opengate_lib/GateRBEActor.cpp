@@ -45,9 +45,8 @@ GateRBEActor::GateRBEActor(py::dict &user_info) : GateVActor(user_info, false) {
   fActions.insert("BeginOfRunAction");
   fActions.insert("EndSimulationAction");
   // Option: compute uncertainty
-  fdoseAverage = DictGetBool(user_info, "dose_average");
-  ftrackAverage = DictGetBool(user_info, "track_average");
-  fRBEtoOtherMaterial = DictGetBool(user_info, "let_to_other_material");
+
+  fRBEtoOtherMaterial = DictGetBool(user_info, "rbe_to_other_material");
   fotherMaterial = DictGetStr(user_info, "other_material");
   // fQAverage = DictGetBool(user_info, "qAverage");
   fInitialTranslation = DictGetG4ThreeVector(user_info, "translation");
@@ -152,9 +151,11 @@ void GateRBEActor::SteppingAction(G4Step *step) {
 	auto charge = int(p->GetPDGCharge());
 	auto table_value = GetValue(charge, energy); //energy has unit?
 	auto alpha_currstep = fAlpha0 + fBeta*table_value;
+	/*
 	std::cout << "---------------" << std::endl;
     std::cout << "Charge: " << charge << ", energy: " << energy << ", z*_1D: " << table_value << std::endl;
     std::cout << "---------------" << std::endl;
+    * */
 
     //auto steplength = step->GetStepLength() / CLHEP::mm;
     double scor_val_num = 0.;
@@ -178,10 +179,12 @@ void GateRBEActor::SteppingAction(G4Step *step) {
       scor_val_den = steplength * w / CLHEP::mm;
     }
     */
-    scor_val_num = edep * alpha_currstep;
-    scor_val_den = edep; //unit?
+    scor_val_num = edep * alpha_currstep / CLHEP::mm;
+    scor_val_den = edep / CLHEP::mm; 
     ImageAddValue<ImageType>(cpp_numerator_image, index, scor_val_num);
     ImageAddValue<ImageType>(cpp_denominator_image, index, scor_val_den);
+    
+    std::cout << "Index: " << index << "is written in images. " << std::endl;
     
 
   } // else : outside the image
