@@ -149,7 +149,7 @@ void GateRBEActor::SteppingAction(G4Step *step) {
         emcalc->ComputeElectronicDEDX(energy, p, current_material, dedx_cut) /
         CLHEP::MeV * CLHEP::mm;*/
 	auto charge = int(p->GetAtomicNumber());
-	auto mass = int(p->GetAtomicMass());
+	auto mass = p->GetAtomicMass();
 	auto table_value = GetValue(charge, energy/mass); //energy has unit?
 	auto alpha_currstep = fAlpha0 + fBeta*table_value;
 	
