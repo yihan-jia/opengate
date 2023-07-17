@@ -139,9 +139,9 @@ class SimulationEngine(gate.EngineBase):
         output.current_random_seed = self.current_random_seed
         if queue is not None:
             queue.put(output)
-
             return None
-        return output
+        else:
+            return output
 
     def initialize(self):
         """

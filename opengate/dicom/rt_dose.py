@@ -146,7 +146,7 @@ class dose_info(object):
                         dose_type, label, uid
                     )
                 )
-            if label in doses.keys():
+            if label in doses.keys() and clinical:
                 # oopsie!
                 raise RuntimeError(
                     "multiple dose files for beamnr/plan={} and UID={}".format(
