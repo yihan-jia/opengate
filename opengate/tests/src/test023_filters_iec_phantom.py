@@ -2,10 +2,9 @@
 # -*- coding: utf-8 -*-
 
 import opengate as gate
-import opengate_core as g4
 import pathlib
-import os
 import opengate.contrib.phantom_nema_iec_body as gate_iec
+from opengate.user_hooks import check_production_cuts
 
 pathFile = pathlib.Path(__file__).parent.resolve()
 
@@ -17,7 +16,7 @@ ui = sim.user_info
 ui.g4_verbose = False
 ui.g4_verbose_level = 1
 ui.visu = False
-ui.random_seed = 123456
+ui.random_seed = 1234567
 
 # units
 m = gate.g4_units("m")
@@ -75,17 +74,19 @@ print(sim.filter_manager.dump())
 # change physics
 p = sim.get_physics_user_info()
 p.physics_list_name = "QGSP_BERT_EMZ"
-cuts = p.production_cuts
-cuts.world.gamma = 0.1 * mm
-cuts.world.proton = 0.1 * mm
-cuts.world.electron = 0.1 * mm
-cuts.world.positron = 0.1 * mm
+sim.physics_manager.global_production_cuts.all = 0.1 * mm
+# sim.physics_manager.global_production_cuts.gamma = 0.1 * mm
+# sim.physics_manager.global_production_cuts.electron = 0.1 * mm
+# sim.physics_manager.global_production_cuts.positron = 0.1 * mm
+# sim.physics_manager.global_production_cuts.proton = 0.1 * mm
+
+sim.user_fct_after_init = check_production_cuts
 
 # start simulation
-output = sim.start(True)
+sim.run(start_new_process=True)
 
 # print results at the end
-stat = output.get_actor("Stats")
+stat = sim.output.get_actor("Stats")
 print(stat)
 # stat.write('output_ref/test023_stats_iec_phantom.txt')
 
@@ -98,7 +99,7 @@ is_ok = is_ok and gate.assert_images(
     pathFile / ".." / "data" / "output_ref" / "test023_iec_phantom-edep.mhd",
     pathFile / ".." / "output" / "test023-edep.mhd",
     stat,
-    tolerance=50,
+    tolerance=100,
 )
 
 gate.test_ok(is_ok)

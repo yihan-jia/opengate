@@ -12,6 +12,7 @@ from .helpers_tests_root import *
 from .helpers_transform import *
 from .helpers_beamline import *
 
+
 # main mechanism for the 'elements': source, actor, volume
 from .UserInfo import *
 from .UserElement import *
@@ -26,6 +27,7 @@ from .EngineBase import *
 from .SimulationEngine import *
 from .SimulationOutput import *
 from .helpers_run_timing import *
+from .GateObjects import *
 
 # helpers to list all possible types of elements
 from .geometry.helpers_geometry import *
@@ -75,3 +77,7 @@ from .dicom.rt_structs import *
 from .dicom.ct_image import *
 from .dicom.radiation_treatment import *
 from .dicom.helpers_dcm import *
+
+from .physics.Region import *
+from .physics.PhysicsConstructors import UserLimitsPhysics
+
