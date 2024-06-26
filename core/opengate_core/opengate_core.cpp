@@ -407,7 +407,7 @@ PYBIND11_MODULE(opengate_core, m) {
   init_G4UserLimits(m);
   init_G4StepLimiter(m);
   init_G4StepLimiterPhysics(m);
-  init_G4UserSpecialCuts(m
+  init_G4UserSpecialCuts(m);
   init_G4VPrimaryGenerator(m);
   init_G4ParticleGun(m);
   init_G4SPSPosDistribution(m);
