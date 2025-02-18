@@ -170,11 +170,11 @@ REActor
 Description
 ~~~~~~~~~~~
 
-The REActor scores the dose-averaged relative effectiveness (RE) within a volume on a voxel grid based on the scoring structure of the :class:`~.opengate.actors.doseactors.BeamQualityActor`. Spatial options are identical to those of :class:`~.opengate.actors.doseactors.DoseActor`.
+The REActor scores the dose-averaged relative effectiveness (RE) map within a given volume. Spatial options are identical to those of :class:`~.opengate.actors.doseactors.DoseActor`.
 
-.. note:: Refer to test087 for a current example.
+.. note:: Refer to test087_beam_quality_actor_re for a current example.
 
-The actor reads an RE lookup table as a function of particle and kinetic energy by `lookup_table_path`. The kinetic energy can be in the unit of either MeV/u or MeV, while remaining consistent with `energy_per_nucleon` option. 
+The actor reads a lookup table of RE values as a function of particle and kinetic energy, by `lookup_table_path`. The kinetic energy can be in the unit of either MeV/u or MeV, while remaining consistent with `energy_per_nucleon` option. 
 
 .. note:: Particle species with atomic number from 1 to 10 are supported.
 
@@ -196,13 +196,13 @@ RBEActor
 Description
 ~~~~~~~~~~~
 
-The RBEActor scores the relative biological effectiveness (RBE) within a volume on a voxel grid based on the scoring structure of the :class:`~.opengate.actors.doseactors.BeamQualityActor`. Spatial options are identical to those of :class:`~.opengate.actors.doseactors.DoseActor`. The available values for the `model` option are: `mMKM`, `LEM1lda`.
+The RBEActor scores the relative biological effectiveness (RBE) map within a given volume. Spatial options are identical to those of :class:`~.opengate.actors.doseactors.DoseActor`. The available values for the `model` option are: `mMKM`, `LEM1lda`.
 
 - **mMKM**:
-The implementation of modified microdosimetric kinetic model (mMKM) was based on `Inaniwa et al., 2010 <https://doi.org/10.1088/0031-9155/55/22/008>`_. The actor reads a lookup table of saturation-corrected dose-averaged specific energy (z*_1D) by `lookup_table_path`. 
+The implementation of modified microdosimetric kinetic model (mMKM) was based on `Inaniwa et al., 2010 <https://doi.org/10.1088/0031-9155/55/22/008>`_. The actor reads a lookup table of saturation-corrected dose-averaged specific energy (z*_1D) values by `lookup_table_path`. 
 
 - **LEM1lda**:
-The implementation of local effect model I with low dose approximation (LEM1lda) was based on `Krämer and Scholz, 2006 <10.1088/0031-9155/51/8/001>`_. The actor reads a lookup table of initial slope (alpha_z) by `lookup_table_path`. 
+The implementation of local effect model I with low dose approximation (LEM1lda) was based on `Krämer and Scholz, 2006 <10.1088/0031-9155/51/8/001>`_. The actor reads a lookup table of initial slope (alpha_z) values by `lookup_table_path`. 
 
 The format requirement of the lookup table is identical to that in :class:`~.opengate.actors.doseactors.REActor`. By default, the actor uses the radiosensitivity parameters of aerobic `HSG` cells. In order to calculate RBE using the radiosentivity parameters of `Chordoma`, the user should specify by the `cell_type` option.
 
@@ -221,8 +221,11 @@ The actor has the following outputs:
 - :attr:`~.opengate.actors.doseactors.RBEActor.alpha_mix`
 - :attr:`~.opengate.actors.doseactors.RBEActor.beta_mix` (if `model` is set to `LEM1lda`)
 
+The user can refer to test087_beam_quality_actor_rbe_mMKM for an example. The test case simulates the central RBE profile (shown in the following figure) and alpha_mix profile of a quasi-monoenergetic carbon ion beam in water, using the `mMKM` model and z*_1D lookup table generated with SURVIVAL (`Manganaro et al., 2018 <https://doi.org/10.1088/1361-6560/aab697>`_). The "reference" RBE profile was simulated using the same configurations, but better statistics (1e5 primaries). The "filter" :attr:`~.opengate.actors.doseactors.DoseActor.edep` profile is shown in arbituary unit to indicate the Bragg peak position, up to which the evaluation is conducted.
 
-.. note:: Refer to test087 for a current example of mMKM model.
+.. image:: ../figures/test087-RBE_rbe_test.png
+
+.. note:: This test case serves as a reference and does not prescribe specific choices or computations of lookup tables. A publication on the validation of :class:`~.opengate.actors.doseactors.RBEActor` is planned.
 
 Reference
 ~~~~~~~~~
@@ -300,7 +303,7 @@ BeamQualityActor
 Description
 ~~~~~~~~~~~
 
-This is a common base class used by the actors that scored dose-averaged quantities deposited on voxel grid like the :class:`~.opengate.actors.doseactors.REActor`, :class:`~.opengate.actors.doseactors.RBEActor`.
+This is a common base class used by the actors that scored the dose-averaged quantities like the :class:`~.opengate.actors.doseactors.REActor`, :class:`~.opengate.actors.doseactors.RBEActor`.
 
 .. important:: You cannot use this actor directly in your simulation.
 
