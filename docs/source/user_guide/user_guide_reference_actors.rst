@@ -164,6 +164,75 @@ Reference
 
 .. autoclass:: opengate.actors.doseactors.LETActor
 
+REActor
+--------
+
+Description
+~~~~~~~~~~~
+
+The REActor scores the dose-averaged relative effectiveness (RE) within a volume on a voxel grid based on the scoring structure of the :class:`~.opengate.actors.doseactors.BeamQualityActor`. Spatial options are identical to those of :class:`~.opengate.actors.doseactors.DoseActor`.
+
+.. note:: Refer to test087 for a current example.
+
+The actor reads an RE lookup table as a function of particle and kinetic energy by `lookup_table_path`. The kinetic energy can be in the unit of either MeV/u or MeV, while remaining consistent with `energy_per_nucleon` option. 
+
+.. note:: Particle species with atomic number from 1 to 10 are supported.
+
+The actor has the following outputs:
+
+- :attr:`~.opengate.actors.doseactors.REActor.RE_mix`
+
+
+Reference
+~~~~~~~~~
+
+.. autoclass:: opengate.actors.doseactors.REActor
+.. autoproperty:: opengate.actors.doseactors.REActor.RE_mix
+
+
+RBEActor
+--------
+
+Description
+~~~~~~~~~~~
+
+The RBEActor scores the relative biological effectiveness (RBE) within a volume on a voxel grid based on the scoring structure of the :class:`~.opengate.actors.doseactors.BeamQualityActor`. Spatial options are identical to those of :class:`~.opengate.actors.doseactors.DoseActor`. The available values for the `model` option are: `mMKM`, `LEM1lda`.
+
+- **mMKM**:
+The implementation of modified microdosimetric kinetic model (mMKM) was based on `Inaniwa et al., 2010 <https://doi.org/10.1088/0031-9155/55/22/008>`_. The actor reads a lookup table of saturation-corrected dose-averaged specific energy (z*_1D) by `lookup_table_path`. 
+
+- **LEM1lda**:
+The implementation of local effect model I with low dose approximation (LEM1lda) was based on `Krämer and Scholz, 2006 <10.1088/0031-9155/51/8/001>`_. The actor reads a lookup table of initial slope (alpha_z) by `lookup_table_path`. 
+
+The format requirement of the lookup table is identical to that in :class:`~.opengate.actors.doseactors.REActor`. By default, the actor uses the radiosensitivity parameters of aerobic `HSG` cells. In order to calculate RBE using the radiosentivity parameters of `Chordoma`, the user should specify by the `cell_type` option.
+
++----------------------+-----------+-----------+
+| Available cell types | alpha_ref | beta_ref  |
++======================+===========+===========+
+| HSG                  | 0.764     | 0.0615    |
++----------------------+-----------+-----------+
+| Chordoma             | 0.1       | 0.05      |
++----------------------+-----------+-----------+
+
+The actor has the following outputs:
+
+- :attr:`~.opengate.actors.doseactors.RBEActor.rbe` (if `write_RBE_dose_image` is set to `True`, which is the default setting)
+- :attr:`~.opengate.actors.doseactors.RBEActor.rbe_dose` (if `write_RBE_dose_image` is set to `True`, which is the default setting)
+- :attr:`~.opengate.actors.doseactors.RBEActor.alpha_mix`
+- :attr:`~.opengate.actors.doseactors.RBEActor.beta_mix` (if `model` is set to `LEM1lda`)
+
+
+.. note:: Refer to test087 for a current example of mMKM model.
+
+Reference
+~~~~~~~~~
+
+.. autoclass:: opengate.actors.doseactors.RBEActor
+.. autoproperty:: opengate.actors.doseactors.RBEActor.rbe
+.. autoproperty:: opengate.actors.doseactors.RBEActor.rbe_dose
+.. autoproperty:: opengate.actors.doseactors.RBEActor.alpha_mix
+.. autoproperty:: opengate.actors.doseactors.RBEActor.beta_mix
+
 
 FluenceActor
 ------------
@@ -223,6 +292,18 @@ VoxelDepositActor
 This is a common base class used by the actors that scored quantities deposited on voxel grid like the :class:`~.opengate.actors.doseactors.DoseActor`, :class:`~.opengate.actors.doseactors.LETActor`, :class:`~.opengate.actors.doseactors.FluenceActor`, :class:`~.opengate.actors.doseactors.TLEDoseActor`.
 
 .. important:: You cannot use this actor directly in your simulation.
+
+
+BeamQualityActor
+--------
+
+Description
+~~~~~~~~~~~
+
+This is a common base class used by the actors that scored dose-averaged quantities deposited on voxel grid like the :class:`~.opengate.actors.doseactors.REActor`, :class:`~.opengate.actors.doseactors.RBEActor`.
+
+.. important:: You cannot use this actor directly in your simulation.
+
 
 
 PhaseSpaceActor
