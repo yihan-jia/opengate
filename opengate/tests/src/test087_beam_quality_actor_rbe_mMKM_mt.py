@@ -99,13 +99,13 @@ if __name__ == "__main__":
     s.track_types_flag = True
 
     sim.run()
-    rs_fpath = ref_path / "mMKM line dose IDEAL_water_AbsDose_2D_IR2HBLc28Jan2025.csv"
-    rs_fpath_phys = (
-        ref_path
-        / "mMKM line physical dose IDEAL_water_AbsDose_2D_IR2HBLc 28 Jan 2025.csv"
-    )
+    # rs_fpath = ref_path / "mMKM line dose IDEAL_water_AbsDose_2D_IR2HBLc28Jan2025.csv"
+    # rs_fpath_phys = (
+    #     ref_path
+        # / "mMKM line physical dose IDEAL_water_AbsDose_2D_IR2HBLc 28 Jan 2025.csv"
+    # )
 
-    fNameIDD = doseIDD.user_info.output
+    # fNameIDD = doseIDD.user_info.output
     """
     is_ok = utility.assert_images(
         ref_path / fNameIDD,
@@ -118,8 +118,8 @@ if __name__ == "__main__":
     )
 
     """
-    ref_fpath = ref_path / "test087-RBE_rbe.mhd"
-    ref_fpath = ref_path / "test087-alpha_mix_rbe.mhd"
+    # ref_fpath = ref_path / "test087-RBE_rbe.mhd"
+    ref_fpath = ref_path / "test087-ref_rbe.mhd"
     #    print(f"{doseIDD.dose.get_output_path()=}")
     is_ok = utility.assert_filtered_imagesprofile1D(
         ref_filter_filename1=doseIDD.edep.get_output_path(),
@@ -130,7 +130,7 @@ if __name__ == "__main__":
         #        plt_ylim=[0, 2],
     )
 
-    ref_fpath = ref_path / "test087-alpha_mix_alpha.mhd"
+    ref_fpath = ref_path / "test087-ref_alpha_mix.mhd"
 
     fName = paths.output / RBE_act.alpha_mix.get_output_path()
 
