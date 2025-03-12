@@ -1186,9 +1186,9 @@ class BeamQualityActor(VoxelDepositActor, g4.GateBeamQualityActor):
                     v_table[i + 1].append(v_table[i + 1][-1])
 
         # normalize table values
-        self.max_val_table = max([max(v_table[i]) for i in range(2, len(v_table), 3)])
-        for i in range(2, len(v_table), 3):
-            v_table[i] = [v / self.max_val_table for v in v_table[i]]
+        # self.max_val_table = max([max(v_table[i]) for i in range(2, len(v_table), 3)])
+        # for i in range(2, len(v_table), 3):
+        #     v_table[i] = [v / self.max_val_table for v in v_table[i]]
 
         self.lookup_table = v_table
 
@@ -1212,8 +1212,8 @@ class BeamQualityActor(VoxelDepositActor, g4.GateBeamQualityActor):
         )
 
         if self.multiple_scoring:
-            self.user_output.beta_mix.set_active(True, item="all")
-            self.user_output.beta_mix.set_write_to_disk(True, item="quotient")
+            # self.user_output.beta_mix.set_active(True, item="all")
+            # self.user_output.beta_mix.set_write_to_disk(True, item="quotient")
             self.prepare_output_for_run("beta_mix", run_index)
             self.push_to_cpp_image(
                 "beta_mix",
@@ -1235,6 +1235,7 @@ class BeamQualityActor(VoxelDepositActor, g4.GateBeamQualityActor):
         self.user_output.__getattr__(f"{self.scored_quantity}_mix").store_meta_data(
             run_index, number_of_samples=self.NbOfEvent
         )
+
         if self.multiple_scoring:
             self.fetch_from_cpp_image(
                 "beta_mix",
@@ -1242,11 +1243,13 @@ class BeamQualityActor(VoxelDepositActor, g4.GateBeamQualityActor):
                 self.cpp_numerator_beta_image,
                 self.cpp_denominator_image,
             )
+
             self._update_output_coordinate_system("beta_mix", run_index)
             self.user_output.beta_mix.store_meta_data(
                 run_index, number_of_samples=self.NbOfEvent
             )
-            self.user_output.beta_mix.merge_data_from_runs()
+
+            # self.user_output.beta_mix.merge_data_from_runs()
 
         VoxelDepositActor.EndOfRunActionMasterThread(self, run_index)
         return 0
@@ -1254,12 +1257,12 @@ class BeamQualityActor(VoxelDepositActor, g4.GateBeamQualityActor):
     def EndSimulationAction(self):
         g4.GateBeamQualityActor.EndSimulationAction(self)
         # rescale numerator results
-        numerator_img = self.user_output.__getattr__(
-            f"{self.scored_quantity}_mix"
-        ).merged_data.data[0]
-        self.user_output.__getattr__(f"{self.scored_quantity}_mix").merged_data.data[
-            0
-        ] = (numerator_img * self.max_val_table)
+        # numerator_img = self.user_output.__getattr__(
+        #     f"{self.scored_quantity}_mix"
+        # ).merged_data.data[0]
+        # self.user_output.__getattr__(f"{self.scored_quantity}_mix").merged_data.data[
+        #     0
+        # ] = (numerator_img * self.max_val_table)
         VoxelDepositActor.EndSimulationAction(self)
 
     def compute_dose_from_edep_img(self, overrides=dict()):
@@ -1486,6 +1489,8 @@ class RBEActor(BeamQualityActor, g4.GateBeamQualityActor):
 
         if self.model == "LEM1lda":
             self.multiple_scoring = True
+            self.user_output.beta_mix.set_active(True, item="all")
+            self.user_output.beta_mix.set_write_to_disk(True, item="quotient")
 
         self.InitializeUserInfo(self.user_info)
         # Set the physical volume name on the C++ side
@@ -1495,12 +1500,12 @@ class RBEActor(BeamQualityActor, g4.GateBeamQualityActor):
     def EndSimulationAction(self):
         g4.GateBeamQualityActor.EndSimulationAction(self)
         # rescale numerator (normalized input table)
-        alpha_mix_numerator_img = self.user_output.__getattr__(
-            f"{self.scored_quantity}_mix"
-        ).merged_data.data[0]
-        self.user_output.__getattr__(f"{self.scored_quantity}_mix").merged_data.data[
-            0
-        ] = (alpha_mix_numerator_img * self.max_val_table)
+        # alpha_mix_numerator_img = self.user_output.__getattr__(
+        #     f"{self.scored_quantity}_mix"
+        # ).merged_data.data[0]
+        # self.user_output.__getattr__(f"{self.scored_quantity}_mix").merged_data.data[
+        #     0
+        # ] = (alpha_mix_numerator_img * self.max_val_table)
         if self.model == "mMKM":
             self._postprocess_alpha_numerator_mkm()
         if self.write_RBE_dose_image:
