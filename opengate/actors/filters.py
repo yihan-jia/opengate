@@ -167,6 +167,18 @@ class UnscatteredPrimaryFilter(FilterBase, g4.GateUnscatteredPrimaryFilter):
 
     def initialize(self):
         super().initialize()
+        
+class PrimaryFilter(FilterBase, g4.GatePrimaryFilter):
+
+    def __init__(self, *args, **kwargs):
+        FilterBase.__init__(self, *args, **kwargs)
+        self.__initcpp__()
+
+    def __initcpp__(self):
+        g4.GatePrimaryFilter.__init__(self)
+
+    def initialize(self):
+        super().initialize()
 
 
 filter_classes = {
@@ -175,6 +187,7 @@ filter_classes = {
     "TrackCreatorProcessFilter": TrackCreatorProcessFilter,
     "ThresholdAttributeFilter": ThresholdAttributeFilter,
     "UnscatteredPrimaryFilter": UnscatteredPrimaryFilter,
+    "PrimaryFilter": PrimaryFilter,
 }
 
 
