@@ -1326,6 +1326,12 @@ class RBEActor(BeamQualityActor, g4.GateBeamQualityActor):
                 "doc": "Cellline specific parameter. Initialized according to cell_type.",
             },
         ),
+        "survival_ref": (
+            None,
+            {
+                "doc": "Optional, reference survival fraction for the calculation of RBE and RBE-weighted dose.",
+            },
+        ),
         "F_clin": (
             2.41,
             {
@@ -1454,38 +1460,52 @@ class RBEActor(BeamQualityActor, g4.GateBeamQualityActor):
         alpha_ref = self.cells_radiosensitivity[self.cell_type]["alpha_ref"]
         beta_ref = self.cells_radiosensitivity[self.cell_type]["beta_ref"]
         dose_img = self.compute_dose_from_edep_img()
-
-        if self.model == "mMKM":
+        
+        if self.survival_ref is None:
+            if self.model == "mMKM":
+                alpha_mix_img = self.user_output.__getattr__(
+                    f"{self.scored_quantity}_mix"
+                ).merged_data.quotient
+                log_survival = alpha_mix_img * dose_img * (
+                    -1
+                ) + dose_img * dose_img * beta_ref * (-1)
+                log_survival_arr = log_survival.image_array
+            elif self.model == "LEM1lda":
+                dose_arr = dose_img.image_array
+                arr_mask_linear = dose_arr > self.D_cut
+                alpha_mix_img = self.user_output.__getattr__(
+                    f"{self.scored_quantity}_mix"
+                ).merged_data.quotient
+                sqrt_beta_mix_img = self.user_output.beta_mix.merged_data.quotient
+    
+                log_survival_lq = alpha_mix_img * dose_img * (
+                    -1
+                ) + dose_img * dose_img * sqrt_beta_mix_img * sqrt_beta_mix_img * (-1)
+                log_survival_lq_arr = log_survival_lq.image_array
+                log_survival_linear = (
+                    alpha_mix_img * self.D_cut * (-1)
+                    + sqrt_beta_mix_img * sqrt_beta_mix_img * self.D_cut * self.D_cut * (-1)
+                    + (dose_img + self.D_cut * (-1)) * self.s_max * (-1)
+                )
+                log_survival_linear_arr = log_survival_linear.image_array
+    
+                log_survival_arr = np.zeros(log_survival_lq.image_array.shape)
+                log_survival_arr[arr_mask_linear] = log_survival_linear_arr[arr_mask_linear]
+                log_survival_arr[~arr_mask_linear] = log_survival_lq_arr[~arr_mask_linear]
+        else:
             alpha_mix_img = self.user_output.__getattr__(
                 f"{self.scored_quantity}_mix"
             ).merged_data.quotient
-            log_survival = alpha_mix_img * dose_img * (
-                -1
-            ) + dose_img * dose_img * beta_ref * (-1)
-            log_survival_arr = log_survival.image_array
-        elif self.model == "LEM1lda":
-            dose_arr = dose_img.image_array
-            arr_mask_linear = dose_arr > self.D_cut
-            alpha_mix_img = self.user_output.__getattr__(
-                f"{self.scored_quantity}_mix"
-            ).merged_data.quotient
-            sqrt_beta_mix_img = self.user_output.beta_mix.merged_data.quotient
-
-            log_survival_lq = alpha_mix_img * dose_img * (
-                -1
-            ) + dose_img * dose_img * sqrt_beta_mix_img * sqrt_beta_mix_img * (-1)
-            log_survival_lq_arr = log_survival_lq.image_array
-            log_survival_linear = (
-                alpha_mix_img * self.D_cut * (-1)
-                + sqrt_beta_mix_img * sqrt_beta_mix_img * self.D_cut * self.D_cut * (-1)
-                + (dose_img + self.D_cut * (-1)) * self.s_max * (-1)
-            )
-            log_survival_linear_arr = log_survival_linear.image_array
-
-            log_survival_arr = np.zeros(log_survival_lq.image_array.shape)
-            log_survival_arr[arr_mask_linear] = log_survival_linear_arr[arr_mask_linear]
-            log_survival_arr[~arr_mask_linear] = log_survival_lq_arr[~arr_mask_linear]
-
+            alpha_mix_arr = alpha_mix_img.image_array
+            if self.model == "LEM1lda":
+                sqrt_beta_mix_img = self.user_output.beta_mix.merged_data.quotient
+                sqrt_beta_mix_arr = sqrt_beta_mix_img.image_array
+                beta_mix_arr = sqrt_beta_mix_arr * sqrt_beta_mix_arr
+                
+            log_survival_arr = np.full(alpha_mix_img.image_array.shape, np.log(self.survival_ref))
+            
+                
+                
         # solve linear quadratic equation to get Dx
         if self.model == "mMKM":
             rbe_dose_arr = (
@@ -1493,6 +1513,7 @@ class RBEActor(BeamQualityActor, g4.GateBeamQualityActor):
                 / (2 * beta_ref)
                 * self.F_clin
             )
+            
         else:
             arr_mask_linear = log_survival_arr < self.lnS_cut
             rbe_dose_lq_arr = (
@@ -1504,13 +1525,41 @@ class RBEActor(BeamQualityActor, g4.GateBeamQualityActor):
             rbe_dose_arr = np.zeros(log_survival_arr.shape)
             rbe_dose_arr[arr_mask_linear] = rbe_dose_linear_arr[arr_mask_linear]
             rbe_dose_arr[~arr_mask_linear] = rbe_dose_lq_arr[~arr_mask_linear]
+            
+        if self.survival_ref is not None:
+            if self.model == "mMKM":
+                isosurvival_dose_arr = (
+                    (-alpha_mix_arr + np.sqrt(alpha_mix_arr * alpha_mix_arr - 4 * beta_ref * log_survival_arr))
+                    / (2 * beta_ref)
+                    * self.F_clin
+                )
+            else:
+                if np.log(self.survival_ref) < self.lnS_cut:
+                    isosurvival_dose_arr = (
+                        (-alpha_mix_arr + np.sqrt(alpha_mix_arr * alpha_mix_arr - 4 * beta_mix_arr * log_survival_arr))
+                        / (2 * beta_mix_arr)
+                        )
+                else:
+                    isosurvival_dose_arr = (
+                        -log_survival_arr + self.lnS_cut
+                    ) / self.s_max + self.D_cut
+            isosurvival_dose_img = itk_image_from_array(isosurvival_dose_arr)
+            isosurvival_dose_image = ItkImageDataItem(data=isosurvival_dose_img)
+                    
 
         # create new data item for the survival image. Same metadata as the other images, but new image array
-        rbedose_img = itk_image_from_array(rbe_dose_arr)
-        rbe_weighted_dose_image = ItkImageDataItem(data=rbedose_img)
-        rbe_weighted_dose_image.copy_image_properties(dose_img.image)
-
-        rbe_image = rbe_weighted_dose_image / dose_img
+        
+        if self.survival_ref is None:
+            rbedose_img = itk_image_from_array(rbe_dose_arr)
+            rbe_weighted_dose_image = ItkImageDataItem(data=rbedose_img)
+            rbe_weighted_dose_image.copy_image_properties(dose_img.image)
+            rbe_image = rbe_weighted_dose_image / dose_img
+        else:
+            isosurvival_rbedose_img = itk_image_from_array(rbe_dose_arr)
+            isosurvival_rbedose_image = ItkImageDataItem(data=isosurvival_rbedose_img)
+            isosurvival_rbedose_image.copy_image_properties(dose_img.image)
+            rbe_image = isosurvival_rbedose_image / isosurvival_dose_image
+            rbe_weighted_dose_image = rbe_image * dose_img
 
         self.user_output.rbe.merged_data = rbe_image
         rbe_path = self.user_output.rbe.get_output_path()
